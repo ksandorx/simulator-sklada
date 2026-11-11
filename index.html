@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v47</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v48</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v47</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v48</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v47</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v48</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v47</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v48</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -311,7 +311,7 @@ const BUILD={
   recv:{n:'Место приёмки',c:300,ic:'📥',tip:'сюда грузчик ставит поддоны с фуры'},
   table:{n:'Стол сортировки',c:800,ic:'🧮',tip:'товар раскладывается по цветам'},
   rack:{n:'Стеллаж',c:400,ic:'🗄',tip:'хранение, 4 ячейки'},
-  cage:{n:'Клетка заказа',c:300,ic:'🧺',tip:'сюда собирают заказы для ПВЗ'},
+  cage:{n:'Клетка заказа',c:300,ic:'<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg>',tip:'сюда собирают заказы для ПВЗ'},
   stack:{n:'Место для поддонов',c:200,ic:'🗂',tip:'пустые поддоны'},
   press:{n:'Пресс',c:3000,ic:'🗜',tip:'картон и плёнка → тюки'},
   desk:{n:'Стол начальника',c:500,ic:'🧑‍💼',tip:'твой кабинет'},
@@ -914,7 +914,7 @@ function genCands(){cands=[];for(let i=0;i<4;i++){const skill=0.8+Math.random()*
   cands.push({name:NAMES[Math.floor(Math.random()*NAMES.length)],skill,want:r50(450+(skill-0.8)*1000+Math.random()*150)});}}
 function onShift(w,d){if(w.sched==='7/0')return true;if(w.sched==='5/2')return (d+w.off)%7<5;return (d+w.off)%4<2;}
 let ds={ship:0,pallets:0,bales:0,orders:0},tasks=[],xp=0,lvl=1,bestShip=0;
-const TASKP={ship:'📦 Отгрузи товаров',pallets:'📥 Прими поддонов',orders:'🧺 Собери заказов',bales:'🗜 Сделай тюков',earned:'💰 Заработай за день, р.'};
+const TASKP={ship:'📦 Отгрузи товаров',pallets:'📥 Прими поддонов',orders:'<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> Собери заказов',bales:'🗜 Сделай тюков',earned:'💰 Заработай за день, р.'};
 function genTasks(){const d=day;const pool=[{k:'ship',n:5+2*d},{k:'pallets',n:2+d},{k:'orders',n:2+d}];
   if(OB('press').length)pool.push({k:'bales',n:1+Math.floor(d/3)});pool.push({k:'earned',n:1500+600*d});
   pool.sort(()=>Math.random()-0.5);tasks=pool.slice(0,3).map(t=>Object.assign(t,{done:false,rw:400+200*Math.min(d,15)}));
@@ -982,7 +982,7 @@ function clsHTML(){const nx=CLASSES[clsI+1];
   return h;}
 // ===== УЗКИЕ МЕСТА (светофор + подсказки)
 let bnT=0,bn={recv:0,sort:0,put:0,pick:0,ship:0,space:0,trash:0},redT={},hintCD={},curHint=null;
-const BN_N={ship:'🚐 Доставка в ПВЗ',recv:'📥 Приёмка',sort:'🧮 Сортировка',put:'🗄 Размещение',pick:'🧺 Подбор',space:'📦 Место на стеллажах',trash:'🗑 Мусор'};
+const BN_N={ship:'🚐 Доставка в ПВЗ',recv:'📥 Приёмка',sort:'🧮 Сортировка',put:'🗄 Размещение',pick:'<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> Подбор',space:'📦 Место на стеллажах',trash:'🗑 Мусор'};
 function bnRaw(){
   const recv=[...OB('dock'),...OB('pfloor')].filter(o=>o.p&&!o.p.acc).length+OB('recv').filter(o=>o.p&&!o.p.acc).length;
   const sort=OB('recv').reduce((a,o)=>a+(o.p&&o.p.acc?o.p.boxes.length:0),0)+OB('bfloor').length;
@@ -1003,7 +1003,7 @@ function bnAdvice(k){const lv=bnLevel(k,bn[k]);const need=Math.max(1,Math.min(3,
       return{t:`Коробки ждут сортировки. Нужно ещё ${need} сортировщ.`,act:'hire:sort:'+need,b:`👷 Нанять ${need} сортировщ.`};
     case 'put':if(bnLevel('space',bn.space)>=1)return{t:'Стеллажи почти полные — поставь новые',act:'build:rack',b:'🗄 Поставить стеллажи'};
       return{t:`Стол забит, не успевают раскладывать. Нужно ещё ${need} чел. на размещение`,act:'hire:put:'+need,b:`👷 Нанять ${need} на размещение`};
-    case 'pick':return{t:`Заказы долго собираются, клиенты ждут. Нужно ещё ${need} подборщ.`,act:'hire:pick:'+need,b:`👷 Нанять ${need} подборщ.`,act2:'build:cage',b2:'🧺 + клетка'};
+    case 'pick':return{t:`Заказы долго собираются, клиенты ждут. Нужно ещё ${need} подборщ.`,act:'hire:pick:'+need,b:`👷 Нанять ${need} подборщ.`,act2:'build:cage',b2:'<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> + клетка'};
     case 'ship':return{t:`Собранные заказы ждут машину (${Math.round(bn.ship)}). Купи свою газель — возит быстрее и больше`,act:'van',b:`🚐 Купить газель (${vanCost()} р.)`};
     case 'space':return{t:`Стеллажи заполнены на ${Math.round(bn.space)}% — скоро некуда класть`,act:'build:rack',b:'🗄 Поставить стеллажи'};
     case 'trash':if(!OB('press').length)return{t:'Мусор копится — нет пресса',act:'build:press',b:'🗜 Поставить пресс'};
@@ -1061,7 +1061,7 @@ const ACH=[
  ['ship1k','📦','Тысячник','Отгрузи 1000 товаров',()=>totalShip>=1000,10000],
  ['ship10k','🚀','Логистический гигант','Отгрузи 10 000 товаров',()=>totalShip>=10000,60000],
  ['self','💪','Сам себе грузчик','Прими 5 поддонов своими руками',()=>st.pRecv>=5,2000],
- ['selfcage','🧺','Начальник-подборщик','Собери сам 20 товаров в клетки',()=>st.pCage>=20,3000],
+ ['selfcage','<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg>','Начальник-подборщик','Собери сам 20 товаров в клетки',()=>st.pCage>=20,3000],
  ['hire1','👷','Первый сотрудник','Найми первого человека',()=>workers.length>=1,1000],
  ['hire10','👥','Бригада','Команда из 10 человек',()=>workers.length>=10,4000],
  ['hire50','🏟','Целый цех','Команда из 50 человек',()=>workers.length>=50,20000],
@@ -1093,6 +1093,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v48','клетка заказа теперь нарисована как настоящая решётчатая тележка'],
  ['v47','💬 сотрудники меньше болтают: 💤 вместо «жду работу», реплика видна при наведении · выбор в ⚙ Настройках'],
  ['v46','💵 сдельная оплата штату за каждую операцию · 📘 обучение: товар в клетку можно класть прямо с поддона'],
  ['v45','🔤 текст по умолчанию мельче · выбор размера текста перед игрой'],
@@ -1117,7 +1118,7 @@ function infoOpen(kind){const b=document.getElementById('infoBox');let h='';
   else if(kind==='news')h='<h2 style="margin-top:0">🆕 Что нового</h2>'+CHANGELOG.map(c=>`<div style="margin:6px 0"><b style="color:#f2c230">${c[0]}</b> — ${c[1]}</div>`).join('');
   else if(kind==='rules')h=`<h2 style="margin-top:0">📜 Правила игры</h2>
 <p><b>Цель:</b> построить склад, отгружать заказы в ПВЗ, расти до «Распределительного центра» и открыть сеть складов в других городах.</p>
-<p><b>Как идёт товар:</b> 🚚 фура → 📥 приёмка (срезать плёнку, отсканировать) → 🧮 сортировка по цветам → 🗄 стеллажи → 🧺 сбор заказа в клетку → 🚐 газель везёт в ПВЗ → 💰 деньги.</p>
+<p><b>Как идёт товар:</b> 🚚 фура → 📥 приёмка (срезать плёнку, отсканировать) → 🧮 сортировка по цветам → 🗄 стеллажи → <svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> сбор заказа в клетку → 🚐 газель везёт в ПВЗ → 💰 деньги.</p>
 <p><b>Управление:</b> на ПК — WASD/стрелки, E — действие, Q — положить/сбросить, 1–4 — взять цвет, R — выбор. На телефоне — джойстик и кнопки E/Q. Клик/тап по объекту или человеку — меню.</p>
 <p><b>Сотрудники:</b> нанимай в Кабинете (штат — выбираешь график и зарплату, аутсорс — дешевле, но ошибается). Кликни по человеку — направь на работу, похвали, отправь на перерыв, обучи.</p>
 <p><b>Деньги:</b> каждый вечер списываются зарплаты и аренда. Следи за блоком «Финансы» справа.</p>
@@ -1752,7 +1753,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v47'} — отчёт`,
+  return [`СкладМастер ${'v48'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1895,7 +1896,7 @@ function hud(){
   {const g=GOALS[goalI];o+=sec('goal',`🏁 Цель ${Math.min(goalI+1,GOALS.length)}/${GOALS.length}`,g?`${g.t} <small style="color:#f2c230">+${g.rw}</small>`:'Все цели выполнены! 🏆',g?g.t.slice(0,22)+'…':'🏆');}
   if(!isEasy())o+=sec('jack','🛒 Рохли',`<small>${jackInfo()}</small>`,`всего ${jacksTotal()}`);
   const cg=OB('cage'),busyC=cg.filter(c=>c.o).length,waitI=cg.reduce((a,c)=>a+(c.o?c.o.items.filter(i=>i.st!=='d').length:0),0);
-  o+=sec('ord','🧺 Заказы ПВЗ',`В очереди: ${pending.length} · клеток занято: ${busyC}/${cg.length}<br><div style="display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:3px">`+
+  o+=sec('ord','<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> Заказы ПВЗ',`В очереди: ${pending.length} · клеток занято: ${busyC}/${cg.length}<br><div style="display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:3px">`+
     cg.map((c,i)=>`<span style="white-space:nowrap"><small style="color:#aaa">${i+1}:</small>`+(c.o?(c.o.exp?'⚡':'')+c.o.items.map(it=>`<span class="dot" style="background:${TYPES[it.t]};opacity:${it.st==='d'?1:.3}"></span>`).join(''):'<small style="color:#666">—</small>')+'</span>').join('')+'</div>',
     `очередь ${pending.length} · ждут ${waitI} тов.`);
   const st=[0,0,0];OB('rack').forEach(r=>r.cells.forEach(v=>{if(v!==null)st[v]++;}));const cap=OB('rack').reduce((a,r)=>a+r.cells.length,0);
@@ -1926,7 +1927,7 @@ const TUT=[
  {t:'Поддон опустеет — его надо убрать. Поставь <b>1 Место для поддонов</b> (кнопка 🗂). Пустой поддон подцепи (<b>E</b>) и отвези туда (<b>E</b>).',ok:()=>OB('stack').length>=1,cnt:()=>[OB('stack').length,1]},
  {t:'Поставь <b>2 Стеллажа</b> (кнопка 🗄). Ставь рядом друг с другом, но не загораживай проходы!',ok:()=>OB('rack').length>=2,cnt:()=>[OB('rack').length,2]},
  {t:'Размещение: возьми коробку со стола (<b>E</b>) и положи на стеллаж (<b>E</b>).',ok:()=>OB('rack').some(r=>r.cells.some(v=>v!==null))||st.pCage>0||totalShip>0,hl:()=>OB('rack')},
- {t:'Поставь <b>1 Клетку заказа</b> (кнопка 🧺) — туда собирают заказы для ПВЗ. Лучше ближе к воротам в ПВЗ.',ok:()=>OB('cage').length>=1,cnt:()=>[OB('cage').length,1]},
+ {t:'Поставь <b>1 Клетку заказа</b> (кнопка <svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg>) — туда собирают заказы для ПВЗ. Лучше ближе к воротам в ПВЗ.',ok:()=>OB('cage').length>=1,cnt:()=>[OB('cage').length,1]},
  {t:'Подбор: над клеткой видно, какие цвета нужны. Возьми коробку нужного цвета (со стеллажа, стола или прямо с поддона) и положи в клетку (<b>E</b>).',ok:()=>st.pCage>0||totalShip>0,hl:()=>OB('cage')},
  {t:'Отлично! Собери заказ целиком — клетка уедет в ПВЗ, и тебе заплатят.',ok:()=>totalShip>0,hl:()=>OB('cage')},
  {t:'Мусор (плёнка и картон) копится и тормозит работу. Поставь <b>1 Пресс</b> (🗜). Мусор носи в пресс (<b>E</b>), при 6/6 нажми у пресса <b>E</b> — получишь тюк.',ok:()=>OB('press').length>=1,cnt:()=>[OB('press').length,1]},
