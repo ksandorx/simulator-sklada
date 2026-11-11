@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v45</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v46</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v45</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v46</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v45</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v46</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v45</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v46</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -458,7 +458,7 @@ function upd(w,dt){
     if(w.breakPend){if(w.jack&&!w.pallet&&jackBack(w))return;w.breakPend=false;say(w,'Иду на перерыв ☕',2);
       w.q.push({k:'go',f:0,o:DOOR,goal:(x,y)=>x===DOOR.x&&y===DOOR.y},fn(()=>{w.onBreak=true;w.hidden=true;w.why='☕ На перерыве';}));return;}
     think(w);
-    if(w.q.length)w.jobs=(w.jobs||0)+1;
+    if(w.q.length){w.jobs=(w.jobs||0)+1;if(!w.out)w.ops=(w.ops||0)+1;}
     if(!w.q.length&&w.jack&&w.carry==null&&!w.pallet&&jackBack(w)){w.why=null;return;}
     if(!w.q.length){w.pose=w.carry!=null?'carry':'idle';w.moving=false;let wy=whyIdle(w.role);if(wy==='RECV')wy=whyRecv(w);if(w.jackWait&&jackQ.includes(w.id))wy=`Жду свободную рохлю (я ${jackQ.indexOf(w.id)+1}-й в очереди)`;setWhy(w,wy);return;}
     w.why=null;
@@ -949,7 +949,7 @@ function vanStep(dt){syncVans();
     else if(v.st==='back'){v.t-=dt;if(v.t<=0)v.st='idle';}}}
 function vanInfo(){const own=vans.filter(v=>v.k==='own'),rent=vans.filter(v=>v.k==='rent'),way=vans.filter(v=>v.st==='out'||v.st==='back').length;
   return `Свои: ${own.length} · наёмные: ${rent.length} <small>(${VAN.rent.cost} р. за товар)</small><br>В пути: ${way} · ждут отправки: <b>${outQ.length}</b> зак.`;}
-const PAY=150;
+const PAY=150,PIECE=4;
 function payMul(){return (0.7+rating*0.08)*(evt&&evt.k==='black'?1.2:1);}
 function ordMul(){return (0.5+rating/5)*(evt&&evt.k==='black'?2.5:1);}
 const EVT={
@@ -1089,6 +1089,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v46','💵 сдельная оплата штату за каждую операцию · 📘 обучение: товар в клетку можно класть прямо с поддона'],
  ['v45','🔤 текст по умолчанию мельче · выбор размера текста перед игрой'],
  ['v44','⛶ кнопка «На весь экран» (и клавиша F)'],
  ['v43','🏆 25 достижений с наградами · 📜 правила игры · 🆕 «Что нового» · 💛 поддержка разработчика'],
@@ -1154,7 +1155,7 @@ function startDay(){
 }
 function rent(){return 400+vansOwn*600+expLvl*600+expD*600+(gates.length-1)*500+(floors-1)*2000+(pvz-1)*800+OB('rack').length*20+OB('cage').length*30;}
 function endDay(){
-  let sal=0;for(const w of workers)if(w.today)sal+=w.sal;
+  let sal=0;for(const w of workers){if(w.today)sal+=w.sal;sal+=(w.ops||0)*PIECE;w.ops=0;}
   const rn=rent();money-=sal+rn;
   let audTxt='';if(evt&&evt.k==='audit'){const tr=objs.reduce((a,o)=>a+(o.trash||0),0);if(tr>5||cancelToday>0){const fine=3000*(clsI+1);money-=fine;addRating(-0.2);audTxt=` · 🕵 Проверка: штраф ${fine} р. (мусор ${tr}, отмен ${cancelToday})`;}else{const b=3000*(clsI+1);money+=b;addRating(0.1);audTxt=` · 🕵 Проверка пройдена! Премия ${b} р.`;st.audit++;}}
   if(evt&&evt.k==='black')st.black++;if(rating>=4.95)st.r5++;st.noCancel=cancelToday===0?st.noCancel+1:0;
@@ -1544,7 +1545,7 @@ let popW=null,popXY=[0,0],popReply='';
 function showWPop(w,e){const el=document.getElementById('wpop');
   if(e){popXY=[e.clientX+10,e.clientY-20];popReply='';}
   popW=w;
-  let h=`<b>${w.name}</b><small>${w.out?'аутсорс':'штат'} · ${ROLES[w.role].n}${w.out?'':' · настроение '+moodFace(w.mood)+' '+Math.round(w.mood)}</small><small>Грейд: ${gradeTxt(w)} · скорость ×${GRADES[gradeI(w)].m}${w.lic?' · ⚡ права':''}</small>
+  let h=`<b>${w.name}</b><small>${w.out?'аутсорс':'штат'} · ${ROLES[w.role].n}${w.out?'':' · настроение '+moodFace(w.mood)+' '+Math.round(w.mood)}</small><small>Грейд: ${gradeTxt(w)} · скорость ×${GRADES[gradeI(w)].m}${w.lic?' · ⚡ права':''}</small>${w.out?'':`<small>Операций сегодня: ${w.ops||0} → +${(w.ops||0)*PIECE} р. сдельно</small>`}
   <div style="background:#151920;padding:6px;border-radius:4px;max-width:270px;white-space:normal">💭 «${thought(w)}»</div>`;
   if(popReply)h+=`<div style="background:#fff;color:#222;padding:6px;border-radius:4px;max-width:270px;white-space:normal">🗣 «${popReply}»</div>`;
   h+=`<small>Сказать:</small>
@@ -1745,7 +1746,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v45'} — отчёт`,
+  return [`СкладМастер ${'v46'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1787,6 +1788,7 @@ function renderBoss(){
     <td><input type="number" id="cz${i}" value="${c.want}" step="50" min="300"> р.</td>
     <td><button onclick="hireCand(${i})">Пригласить</button></td></tr>`;});h+='</table>';}
   h+=`<div style="font-size:12px;color:#aaa;margin-top:4px">Мало предложишь — откажется. Платишь меньше, чем хочет — злится, работает медленнее и может уволиться. «Без выходных» — устаёт.</div>
+  <div style="color:#aaa;font-size:13px;margin:4px 0">💵 Штатным платим оклад за смену + <b>${PIECE} р. за каждую операцию</b> (принял, отсортировал, разместил, подобрал, отпрессовал).</div>
   <h3>👷 Аутсорс (агентство) — ${OUT_PAY} р. за смену</h3><div style="margin-bottom:4px">Нажми на работу — человек сразу приедет на склад в оранжевом жилете:</div><div>`;
   for(const r in ROLES)h+=`<button style="margin:2px" onclick="hireOut('${r}')">+ ${ROLES[r].n}</button>`;
   h+=`</div><div style="font-size:12px;color:#aaa;margin-top:4px">Выходят каждый день, но медленнее, ошибаются и иногда не приходят. Платишь только за вышедших.</div>
@@ -1878,8 +1880,8 @@ function hud(){
   setH('sDay',`📅 День ${day} <span class="bar"><i style="width:${Math.round(dayT/DAYLEN*50)*2}%"></i></span>`);
   setH('sSave',(VK.on&&performance.now()-VK.cloudT<3000)?'☁ <span style="color:#7dff7d">в VK</span>':saveFail?'<span style="color:#f55">💾 ошибка!</span>':(performance.now()-savedT<1200?'💾 <span style="color:#7dff7d">'+(isMob?'✓':'сохранено')+'</span>':'💾 <span style="opacity:0">'+(isMob?'✓':'сохранено')+'</span>'));
   setH('sPvz',`🏙 ${nets[netCur].name} · 🏪 ПВЗ: ${pvz} · 📦 ${totalShip} · 👥 ${workers.filter(w=>!w.absent).length}/${workers.length}`);
-  const salToday=workers.reduce((a,w)=>a+(w.today?w.sal:0),0),exp=salToday+rent(),fc=money-exp;
-  let o=sec('fin',`💰 Финансы (день ${day})`,`Заработано сегодня: <span style="color:#7dff7d">+${dayInc} р.</span><br>Вечером спишут: <span style="color:#f77">−${exp} р.</span><br><small>зарплаты ${salToday} + аренда ${rent()}</small><br><small>🏆 рекорд отгрузки за день: ${bestShip}</small><br>Останется: <b style="color:${fc<0?'#f55':'#7dff7d'}">${Math.floor(fc)} р.</b>${fc<0?'<br><small style="color:#f77">⚠ Не хватает! Отгружай заказы или сократи расходы</small>':''}`,`${fc<0?'<span style="color:#f55">':''}${Math.floor(fc)} р. к вечеру${fc<0?'</span>':''}`);
+  const pcs=workers.reduce((a,w)=>a+(w.ops||0)*PIECE,0),salToday=workers.reduce((a,w)=>a+(w.today?w.sal:0),0)+pcs,exp=salToday+rent(),fc=money-exp;
+  let o=sec('fin',`💰 Финансы (день ${day})`,`Заработано сегодня: <span style="color:#7dff7d">+${dayInc} р.</span><br>Вечером спишут: <span style="color:#f77">−${exp} р.</span><br><small>зарплаты ${salToday} (из них сдельно ${pcs}) + аренда ${rent()}</small><br><small>🏆 рекорд отгрузки за день: ${bestShip}</small><br>Останется: <b style="color:${fc<0?'#f55':'#7dff7d'}">${Math.floor(fc)} р.</b>${fc<0?'<br><small style="color:#f77">⚠ Не хватает! Отгружай заказы или сократи расходы</small>':''}`,`${fc<0?'<span style="color:#f55">':''}${Math.floor(fc)} р. к вечеру${fc<0?'</span>':''}`);
   {const worst=Math.max(...Object.keys(bn).map(k=>bnLevel(k,bn[k])));o+=sec('bn','🚦 Узкие места',bnHTML(),['🟢 всё успевают','🟡 есть очереди','🔴 есть завал'][worst]);}
   o+=sec('van','🚐 Доставка в ПВЗ',vanInfo()+`<br><button onclick="buyVan()" style="margin-top:4px;padding:3px 8px">Купить газель ${vanCost()} р.</button>`,`ждут ${outQ.length}`);
   o+=sec('cls',`🏭 Класс ${clsName()} · ⭐ ${rating.toFixed(1)}`,clsHTML(),evt?EVT[evt.k].n:'');
@@ -1917,9 +1919,10 @@ const TUT=[
  {get t(){return (isEasy()?'':'Сначала поставь рохлю на стоянку (<b>E</b>) — с ней коробку не взять. ')+'Сортировка: возьми коробку с поддона (<b>E</b>), отнеси к столу и нажми <b>E</b> — она ляжет в секцию своего цвета.'},ok:()=>OB('table').some(o=>o.n.some(v=>v))||OB('rack').some(r=>r.cells.some(v=>v!==null)),hl:()=>OB('table')},
  {t:'Поддон опустеет — его надо убрать. Поставь <b>1 Место для поддонов</b> (кнопка 🗂). Пустой поддон подцепи (<b>E</b>) и отвези туда (<b>E</b>).',ok:()=>OB('stack').length>=1,cnt:()=>[OB('stack').length,1]},
  {t:'Поставь <b>2 Стеллажа</b> (кнопка 🗄). Ставь рядом друг с другом, но не загораживай проходы!',ok:()=>OB('rack').length>=2,cnt:()=>[OB('rack').length,2]},
- {t:'Размещение: возьми коробку со стола (<b>E</b>) и положи на стеллаж (<b>E</b>).',ok:()=>OB('rack').some(r=>r.cells.some(v=>v!==null)),hl:()=>OB('rack')},
+ {t:'Размещение: возьми коробку со стола (<b>E</b>) и положи на стеллаж (<b>E</b>).',ok:()=>OB('rack').some(r=>r.cells.some(v=>v!==null))||st.pCage>0||totalShip>0,hl:()=>OB('rack')},
  {t:'Поставь <b>1 Клетку заказа</b> (кнопка 🧺) — туда собирают заказы для ПВЗ. Лучше ближе к воротам в ПВЗ.',ok:()=>OB('cage').length>=1,cnt:()=>[OB('cage').length,1]},
- {t:'Подбор: справа видно, какие цвета нужны в клетке. Возьми такую коробку со стеллажа и положи в клетку. Собрал весь заказ — он уедет в ПВЗ, и тебе заплатят.',ok:()=>totalShip>0,hl:()=>OB('cage')},
+ {t:'Подбор: над клеткой видно, какие цвета нужны. Возьми коробку нужного цвета (со стеллажа, стола или прямо с поддона) и положи в клетку (<b>E</b>).',ok:()=>st.pCage>0||totalShip>0,hl:()=>OB('cage')},
+ {t:'Отлично! Собери заказ целиком — клетка уедет в ПВЗ, и тебе заплатят.',ok:()=>totalShip>0,hl:()=>OB('cage')},
  {t:'Мусор (плёнка и картон) копится и тормозит работу. Поставь <b>1 Пресс</b> (🗜). Мусор носи в пресс (<b>E</b>), при 6/6 нажми у пресса <b>E</b> — получишь тюк.',ok:()=>OB('press').length>=1,cnt:()=>[OB('press').length,1]},
  {t:'Устал работать один? Открой <b>🧑‍💼 Кабинет</b> и пригласи <b>1 сотрудника</b>: выбери работу, график и зарплату. Или возьми аутсорсера.',ok:()=>workers.length>=1,cnt:()=>[workers.length,1]},
  {t:'Кликни по своему сотруднику на складе — можно сразу указать, где ему работать. Дальше расширяй склад, покупай этажи и ПВЗ. Удачи!',ok:()=>false,last:true}
