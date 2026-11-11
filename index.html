@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v44</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v45</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v44</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v45</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,20 +115,23 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v44</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v45</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v44</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v45</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
 </div></div>
 <div id="modeSel" class="ov"><div class="box" style="width:380px;text-align:center">
   <h2>Выбери режим</h2>
+  <div style="margin:4px 0 10px">🔤 Размер текста: <b id="msT"></b><div style="display:flex;gap:4px;margin-top:4px">
+   <button class="msB" data-v="-1" style="flex:1;padding:8px">Авто</button><button class="msB" data-v="65" style="flex:1;padding:8px;font-size:12px">Мелкий</button><button class="msB" data-v="80" style="flex:1;padding:8px;font-size:15px">Средний</button><button class="msB" data-v="100" style="flex:1;padding:8px;font-size:18px">Крупный</button></div>
+   <small style="color:#999">потом можно поменять в ⚙ Настройках</small></div>
   <button onclick="document.getElementById('modeSel').style.display='none';startNew('easy')" style="display:block;width:100%;padding:14px;font-size:17px;margin:8px 0;background:#2e7d32">🙂 Лёгкий <small style="color:#cfc">(рекомендуем)</small><br><small>склад уже частично построен · без рохлей · мало мусора · никто не увольняется</small></button>
   <button onclick="document.getElementById('modeSel').style.display='none';startNew('real')" style="display:block;width:100%;padding:14px;font-size:17px;margin:8px 0">🔧 Реалистичный<br><small>всё строишь сам · рохли · мусор · увольнения и прогулы</small></button>
   <button onclick="document.getElementById('modeSel').style.display='none'" style="width:100%;padding:8px;background:#444">Назад</button>
@@ -1086,6 +1089,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v45','🔤 текст по умолчанию мельче · выбор размера текста перед игрой'],
  ['v44','⛶ кнопка «На весь экран» (и клавиша F)'],
  ['v43','🏆 25 достижений с наградами · 📜 правила игры · 🆕 «Что нового» · 💛 поддержка разработчика'],
  ['v42','☁ сохранение в облаке VK · 📺 бонус за рекламу · 👥 позвать друзей'],
@@ -1129,6 +1133,9 @@ function toggleFS(){const d=document.documentElement;
   setTimeout(()=>window.dispatchEvent(new Event('resize')),300);}
 addEventListener('load',()=>{if(!(document.fullscreenEnabled||document.webkitFullscreenEnabled))document.querySelectorAll('.fsBtn').forEach(b=>b.style.display='none');});
 document.addEventListener('keydown',e=>{if(e.code==='KeyF'&&!e.ctrlKey&&!(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)))toggleFS();});
+function msSync(){const t=document.getElementById('msT');if(t)t.textContent=settings.ui+'%';document.querySelectorAll('.msB').forEach(b=>b.style.outline=(+b.dataset.v===settings.ui||(b.dataset.v==='-1'&&settings.uiAuto))?'2px solid #f2c230':'none');}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.msB');if(!b)return;const v=+b.dataset.v;
+  if(v<0){autoUI();settings.uiAuto=true;}else{settings.ui=v;settings.uiAuto=false;}saveSettings();try{syncSet();}catch(_){}resize();msSync();});
 function infoClose(){document.getElementById('infoOv').style.display='none';}
 function copyTxt(t,btn){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();
   if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{});btn.textContent='✔ Скопировано';}
@@ -1359,7 +1366,7 @@ function resetWins(){settings.win={};settings.bossFs=1;saveSettings();for(const 
 })();
 function detectMob(){return (matchMedia&&matchMedia('(pointer:coarse)').matches)||innerWidth<900;}
 function autoUI(){const m=detectMob();const sh=Math.min(innerWidth,innerHeight);
-  settings.ui=m?Math.round(Math.max(60,Math.min(100,sh/430*80))/5)*5:100;
+  settings.ui=m?Math.round(Math.max(55,Math.min(90,sh/430*70))/5)*5:85;
   settings.zoom=m?-1:100;saveSettings();}
 function applyUI(){
   isMob=detectMob();document.body.classList.toggle('mob',isMob);
@@ -1738,7 +1745,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v44'} — отчёт`,
+  return [`СкладМастер ${'v45'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1836,7 +1843,7 @@ function armed(btn,label){
   if(armBtn===btn&&performance.now()-armT<4000)return true;
   armBtn=btn;armT=performance.now();const old=label;btn.textContent='⚠ Старая игра сотрётся. Нажми ещё раз';
   setTimeout(()=>{if(armBtn===btn){btn.textContent=old;armBtn=null;}},4000);return false;}
-document.getElementById('mNew').onclick=e=>{portraitHint();if(armed(e.currentTarget,'🆕 Новая игра'))document.getElementById('modeSel').style.display='flex';};
+document.getElementById('mNew').onclick=e=>{portraitHint();if(armed(e.currentTarget,'🆕 Новая игра'))document.getElementById('modeSel').style.display='flex';msSync();};
 
 document.getElementById('mSet').onclick=()=>{document.getElementById('settings').style.display='flex';syncSet();};
 document.getElementById('setBack').onclick=()=>{if(document.activeElement)document.activeElement.blur();document.getElementById('settings').style.display='none';};
