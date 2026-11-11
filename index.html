@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v43</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v44</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -95,9 +95,10 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <span id="floorBtns"></span>
   <button onclick="openAdBox()" id="bAd" style="background:#7b5c12">📺 Бонус</button>
   <button onclick="infoOpen('ach')" title="Достижения">🏆</button>
+  <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v43</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v44</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -114,13 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v43</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v44</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
+  <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v43</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v44</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -1084,6 +1086,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v44','⛶ кнопка «На весь экран» (и клавиша F)'],
  ['v43','🏆 25 достижений с наградами · 📜 правила игры · 🆕 «Что нового» · 💛 поддержка разработчика'],
  ['v42','☁ сохранение в облаке VK · 📺 бонус за рекламу · 👥 позвать друзей'],
  ['v41','🚐 газели в ПВЗ · 🎓 грейды и обучение · ⚡ электророхли с правами · 🏙 сеть складов в разных городах'],
@@ -1119,6 +1122,13 @@ function infoOpen(kind){const b=document.getElementById('infoBox');let h='';
 <p>Почта для отзывов и идей:<br><b>alexvohmin@gmail.com</b> <button onclick="copyTxt('alexvohmin@gmail.com',this)">📋</button></p>`;
   b.innerHTML=h+'<button onclick="infoClose()" style="width:100%;padding:10px;margin-top:10px;background:#444">Закрыть</button>';
   document.getElementById('infoOv').style.display='flex';}
+function fsEl(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function toggleFS(){const d=document.documentElement;
+  try{if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}
+  else{const f=d.requestFullscreen||d.webkitRequestFullscreen;if(f){const p=f.call(d);if(p&&p.catch)p.catch(()=>toast('Браузер не разрешил полный экран',3));}else toast('На этом устройстве полный экран недоступен',3);}}catch(e){toast('Полный экран недоступен',3);}
+  setTimeout(()=>window.dispatchEvent(new Event('resize')),300);}
+addEventListener('load',()=>{if(!(document.fullscreenEnabled||document.webkitFullscreenEnabled))document.querySelectorAll('.fsBtn').forEach(b=>b.style.display='none');});
+document.addEventListener('keydown',e=>{if(e.code==='KeyF'&&!e.ctrlKey&&!(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)))toggleFS();});
 function infoClose(){document.getElementById('infoOv').style.display='none';}
 function copyTxt(t,btn){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();
   if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{});btn.textContent='✔ Скопировано';}
@@ -1728,7 +1738,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v43'} — отчёт`,
+  return [`СкладМастер ${'v44'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
