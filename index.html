@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v48</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v49</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v48</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v49</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v48</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v49</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v48</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v49</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -655,7 +655,7 @@ function whyRecv(w){
   if(!po)return OB('recv').some(o=>o.off)?'Свободных открытых мест приёмки нет (есть закрытые 🚫)':'Все места приёмки заняты другими приёмщиками — поставь ещё одно';
   if(po.p&&po.p.acc)return `Поддон на моём месте №${recvNo(po)} принят. Жду, когда разберут`;
   if(OB('dock').some(o=>o.p)||OB('pfloor').some(o=>o.p))return `Моё место №${recvNo(po)} пустое, а поддоны у ворот. Нужен грузчик!`;
-  return `Моё место №${recvNo(po)} пустое. Жду фуру`;
+  return bn.space>=92?`Моё место №${recvNo(po)} пустое. Стеллажи полные — фуры не едут`:`Моё место №${recvNo(po)} пустое. Жду фуру (фур больше, если больше ПВЗ и ворот)`;
 }
 const TASK={press:'Убираю мусор / прессую',recv:'Принимаю поддон',sort:'Сортирую коробку',put:'Раскладываю по стеллажам',pick:'Собираю заказ',load:'Работаю на рохле'};
 function thought(w){if(w.absent)return w.out?'Не вышел сегодня':'Выходной';if(w.onBreak)return `☕ На перерыве, вернусь через ${Math.ceil(w.breakT)} сек`;if(w.breakPend)return 'Иду на перерыв';if(w.jackWait&&!w.jack)return `Жду свободную рохлю (я ${jackQ.indexOf(w.id)+1}-й в очереди)`;if(w.why)return w.why;
@@ -1027,7 +1027,10 @@ function bnStep(dt){bnT+=dt;if(bnT<0.5)return;const d=bnT;bnT=0;const r=bnRaw();
   if(!curHint&&!uiOpen()&&tutStep>=TUT.length){const k=Object.keys(bn).find(k=>redT[k]>15&&!(hintCD[k]>gT));if(k)showHint(k);}}
 function bnHTML(){const icon=['🟢','🟡','🔴'];const fmt={ship:v=>`${Math.round(v)} зак. ждут машину`,recv:v=>`${Math.round(v)} поддон. ждут`,sort:v=>`${Math.round(v)} кор. ждут`,put:v=>`${Math.round(v)} кор. на столах`,pick:v=>`${Math.round(v)} тов. собираются`,space:v=>`занято ${Math.round(v)}%`,trash:v=>`${Math.round(v)} кусков`};
   return Object.keys(bn).map(k=>{const lv=bnLevel(k,bn[k]);return `<div style="cursor:${lv?'pointer':'default'}" ${lv?`onclick="showHint('${k}')"`:''}>${icon[lv]} ${BN_N[k]}: <small style="color:#aaa">${fmt[k](bn[k])}</small>${!['space','trash','ship'].includes(k)?` <small style="color:#888">· людей ${roleCount(k)+(roleCount('auto')?'+'+roleCount('auto')+'⭐':'')}</small>`:''}${lv===2?' <b style="color:#f77">← завал</b>':''}</div>`;}).join('')+
-    '<small style="color:#888">🔴 — нажми, чтобы получить совет. «⭐» — сотрудники «Где нужнее»</small>';}
+    idleHTML()+'<small style="color:#888">🔴 — нажми, чтобы получить совет. «⭐» — сотрудники «Где нужнее»</small>';}
+function idleHTML(){const act=workers.filter(w=>!w.absent&&!w.hidden&&!w.onBreak);if(act.length<3)return '';
+  const idle=act.filter(w=>!w.q.length).length,p=idle/act.length;
+  return `<div>${p>0.4?'🟡':'🟢'} 😴 Без дела: <small style="color:#aaa">${idle} из ${act.length}</small></div>`+(p>0.4&&act.length>=8?`<small style="color:#f2c230">Людей больше, чем работы. Больше работы дают новые ПВЗ и ворота приёмки (больше фур). Или отпусти часть аутсорса — сэкономишь.</small><br>`:'');}
 // ----- сеть складов -----
 let nets=[{name:'Главный склад',st:null}],netCur=0;
 const CITIES=['Казань','Екатеринбург','Новосибирск','Самара','Уфа','Краснодар','Нижний Новгород','Челябинск','Ростов-на-Дону','Воронеж','Омск','Красноярск','Москва','Санкт-Петербург','Пермь','Тюмень'];
@@ -1093,6 +1096,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v49','🚚 фур больше при большем числе ворот · 😴 счётчик «Без дела» в узких местах · подсказки, почему приёмка ждёт'],
  ['v48','клетка заказа теперь нарисована как настоящая решётчатая тележка'],
  ['v47','💬 сотрудники меньше болтают: 💤 вместо «жду работу», реплика видна при наведении · выбор в ⚙ Настройках'],
  ['v46','💵 сдельная оплата штату за каждую операцию · 📘 обучение: товар в клетку можно класть прямо с поддона'],
@@ -1184,8 +1188,8 @@ function step(dt){
   if(evt&&evt.k==='returns'){retT+=dt;if(retT>25){retT=0;if(OB('bfloor').length<12)for(let i=0;i<2+Math.floor(Math.random()*2);i++){const sp=freeSpot(3,10);if(sp){const b=addObj('bfloor',0,sp[0],sp[1]);b.t=Math.floor(Math.random()*3);}}toast('↩ Привезли возвраты из ПВЗ — разложи их',2);}}
   dayT+=dt;if(dayT>=DAYLEN){dayT-=DAYLEN;endDay();}
   truckT+=dt;
-  {const iv=36/pvz*(upg.truck?0.75:1)/(evt&&evt.k==='black'?1.8:1);
-   if(truckT>=iv){const fr=gates.filter(g=>(!g.tr||g.tr.st==='away')&&gateDocks(g).some(s=>!s.p));if(fr.length){const g=fr[Math.floor(Math.random()*fr.length)];g.tr={st:'in',t:0,y:-200,k:0};truckT=0;}}
+  {const iv=36/pvz*(upg.truck?0.75:1)/(evt&&evt.k==='black'?1.8:1)/(1+0.35*(gates.length-1));
+   if(truckT>=iv&&bn.space<92){const fr=gates.filter(g=>(!g.tr||g.tr.st==='away')&&gateDocks(g).some(s=>!s.p));if(fr.length){const g=fr[Math.floor(Math.random()*fr.length)];g.tr={st:'in',t:0,y:-200,k:0};truckT=0;}}
    for(const g of gates){const tr=g.tr;if(!tr||tr.st==='away')continue;const docks=gateDocks(g);
      if(tr.st==='in'){tr.t+=dt;tr.y=-200+200*Math.min(1,tr.t/1.5);if(tr.t>=1.5){tr.st='unl';tr.t=0;OB('stack').forEach(s=>s.n=0);}}
      else if(tr.st==='unl'){tr.t+=dt;if(tr.k<2&&tr.t>0.8*(tr.k+1)){const s=docks.find(s=>!s.p);if(s)s.p=newPallet();tr.k++;}if(tr.t>2.6)tr.st='out';}
@@ -1753,7 +1757,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v48'} — отчёт`,
+  return [`СкладМастер ${'v49'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
