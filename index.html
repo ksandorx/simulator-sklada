@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v46</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v47</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v46</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v47</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v46</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v47</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v46</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v47</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -150,6 +150,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <p>🎶 Мелодия: <b id="trkName">—</b><br><select id="trkSel" style="width:100%;margin-top:4px"></select><button id="trkNext" style="width:100%;margin-top:4px">⏭ Следующая мелодия</button></p>
   <p>🔊 Звуки: <b id="vsT"></b><br><input type="range" id="volS" min="0" max="100"></p>
   <p>🔤 Размер текста и кнопок: <b id="vuT"></b><br><input type="range" id="volU" min="60" max="160" step="5"></p>
+  <p>💬 Реплики сотрудников:<br><select id="talkSel" style="width:100%;margin-top:4px"><option value="0">Выключены (только при наведении)</option><option value="1">Только важные (рекомендуем)</option><option value="2">Все — болтают постоянно</option></select></p>
   <p>🔍 Приближение склада: <b id="vzT"></b><br><input type="range" id="volZ" min="100" max="400" step="10"></p>
   <button onclick="resetWins()" style="width:100%;padding:8px;margin-bottom:8px">↺ Вернуть окна на место</button>
   <button onclick="tutRestart()" style="width:100%;padding:8px;margin-bottom:8px">📘 Пройти обучение заново</button>
@@ -622,7 +623,8 @@ function trashTask(w,eager){
 
 // ================= МЫСЛИ И РАЗГОВОРЫ =================
 function say(w,t,d){w.say=t;w.sayT=d||3;}
-function setWhy(w,t){if(w.why!==t){w.why=t;say(w,t,3);}}
+function setWhy(w,t){if(w.why!==t){w.why=t;if(talkLvl()>=2)say(w,t,3);}}
+function talkLvl(){return settings.talk==null?1:settings.talk;}
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 function whyIdle(r){
   switch(r){
@@ -683,8 +685,10 @@ function talk(id,cmd){const w=workers.find(w=>w.id===id);if(!w)return;let r;
 function moodFace(m){return m<30?'😡':m<50?'😒':m<75?'🙂':'😄';}
 function drawSay(w){
   const x=w.px,y=w.py-36;let t=null,a=1;
-  if(w.sayT>0){t=w.say;a=Math.min(1,w.sayT);}
-  else if(w.why&&!w.moving&&!w.cur){ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.ellipse(x+10,y-8,9,6,0,0,7);ctx.fill();
+  const foc=(w===hoverW||w===popW);
+  if(w.sayT>0&&(talkLvl()>0||foc)){t=w.say;a=Math.min(1,w.sayT);}
+  else if(foc&&w.why){t=w.why;}
+  else if(w.why&&!w.moving&&!w.cur){if(/порядок|нечего|пусто|жду/i.test(w.why)&&!w.breakT){txt('💤',x+10,y-4,'#333',11,'center');return;}ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.ellipse(x+10,y-8,9,6,0,0,7);ctx.fill();
     ctx.beginPath();ctx.arc(x+4,y-1,2,0,7);ctx.fill();txt(w.breakT>0?'☕':'…',x+10,y-5,'#333',11,'center');return;}
   if(!t)return;
   ctx.globalAlpha=a;ctx.font='bold 11px Segoe UI,Arial';const tw=Math.min(ctx.measureText(t).width,180)+10;
@@ -1089,6 +1093,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v47','💬 сотрудники меньше болтают: 💤 вместо «жду работу», реплика видна при наведении · выбор в ⚙ Настройках'],
  ['v46','💵 сдельная оплата штату за каждую операцию · 📘 обучение: товар в клетку можно класть прямо с поддона'],
  ['v45','🔤 текст по умолчанию мельче · выбор размера текста перед игрой'],
  ['v44','⛶ кнопка «На весь экран» (и клавиша F)'],
@@ -1137,6 +1142,7 @@ document.addEventListener('keydown',e=>{if(e.code==='KeyF'&&!e.ctrlKey&&!(e.targ
 function msSync(){const t=document.getElementById('msT');if(t)t.textContent=settings.ui+'%';document.querySelectorAll('.msB').forEach(b=>b.style.outline=(+b.dataset.v===settings.ui||(b.dataset.v==='-1'&&settings.uiAuto))?'2px solid #f2c230':'none');}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.msB');if(!b)return;const v=+b.dataset.v;
   if(v<0){autoUI();settings.uiAuto=true;}else{settings.ui=v;settings.uiAuto=false;}saveSettings();try{syncSet();}catch(_){}resize();msSync();});
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='talkSel'){settings.talk=+e.target.value;saveSettings();}});
 function infoClose(){document.getElementById('infoOv').style.display='none';}
 function copyTxt(t,btn){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();
   if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{});btn.textContent='✔ Скопировано';}
@@ -1746,7 +1752,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v46'} — отчёт`,
+  return [`СкладМастер ${'v47'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1849,7 +1855,7 @@ document.getElementById('mNew').onclick=e=>{portraitHint();if(armed(e.currentTar
 
 document.getElementById('mSet').onclick=()=>{document.getElementById('settings').style.display='flex';syncSet();};
 document.getElementById('setBack').onclick=()=>{if(document.activeElement)document.activeElement.blur();document.getElementById('settings').style.display='none';};
-function syncSet(){document.getElementById('trkSel').value=settings.track==null?'auto':settings.track;document.getElementById('trkName').textContent=trackName();document.getElementById('volU').value=settings.ui;document.getElementById('vuT').textContent=settings.ui+'%';document.getElementById('volZ').value=settings.zoom;document.getElementById('vzT').textContent=settings.zoom+'%';
+function syncSet(){{const ts=document.getElementById('talkSel');if(ts)ts.value=talkLvl();}document.getElementById('trkSel').value=settings.track==null?'auto':settings.track;document.getElementById('trkName').textContent=trackName();document.getElementById('volU').value=settings.ui;document.getElementById('vuT').textContent=settings.ui+'%';document.getElementById('volZ').value=settings.zoom;document.getElementById('vzT').textContent=settings.zoom+'%';
   document.getElementById('volM').value=settings.mus;document.getElementById('volS').value=settings.sfx;
   document.getElementById('vmT').textContent=settings.mus+'%';document.getElementById('vsT').textContent=settings.sfx+'%';}
 document.getElementById('volM').oninput=e=>{settings.mus=+e.target.value;applyVol();saveSettings();syncSet();};
