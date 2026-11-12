@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v61</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v66</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -46,6 +46,9 @@ body{touch-action:none;-webkit-user-select:none;-webkit-touch-callout:none;overs
 #bCancel{display:none;background:rgba(180,40,40,.92)}
 .mobOnly{display:none}
 body.mob .mobOnly{display:inline-block}
+body.mob #bZm,body.mob #bZp,body.mob #bAd,body.mob .fsBtn,body.mob #bNet,body.mob #top button[title="Достижения"],body.mob #sPvz,body.mob #sSave{display:none!important}
+body.mob #top button{min-height:34px}
+body.mob #menu .mobMenu{display:block!important}
 body.mob #ord .closeBtn{display:block}#ord .closeBtn{display:none}
 body.mob #joy{display:block}body.mob #mbtns{display:flex}
 body.mob #left{display:none;bottom:0;width:230px;z-index:6;box-shadow:4px 0 12px #000}
@@ -99,7 +102,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="infoOpen('ppl')" title="Найти сотрудника">👥 Люди</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v61</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v66</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -116,14 +119,16 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v61</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v66</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
+  <button class="mobMenu" style="display:none" onclick="closeMenu();openAdBox()">📺 Бонус за рекламу</button>
+  <button class="mobMenu" style="display:none" onclick="closeMenu();openNetUI()">🏙 Мои склады</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v61</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v66</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -297,7 +302,55 @@ const gX=g=>g.side==='R'?GW-1:0, wX=g=>g.side==='R'?GW-2:1;
 const hasR=()=>gates.some(g=>g.side==='R');
 function isWalkway(f,x,y){return f===0&&gates.some(g=>x===wX(g)&&Math.abs(y-g.y)<=1);}
 function gateDocks(g){return OB('dock').filter(o=>o.x===gX(g)&&Math.abs(o.y-g.y)<=1);}
-const TYPES=['#e04848','#3d7be0','#3fbf5a'];
+const TYPES=['#e04848','#3d7be0','#3fbf5a'];let kgtOrd=0,kgtT=0,kgtOT=0;
+let vestCol='#3fbf5a',outUni=false,buses=0,valOrd=0,valT=0,busShowT=0;
+let nightOn=false,invT=0,invUntil=0,nextEvt=null,kpiOn=true,floorCol=null,marking=false,kpiTxt='';
+function seasonOf(d){d=d||new Date();const m=d.getMonth()+1,dd=d.getDate();
+  if((m===12&&dd>=10)||(m===1&&dd<=10))return {k:'ny',n:'🎄 Новогодний аврал',d:'заказов ×1,8, фур ×1,5, оплата +20%',o:1.8,t:1.5,p:1.2};
+  if(m===11&&dd>=8&&dd<=14)return {k:'sale',n:'🛍 Распродажа 11.11',d:'заказов ×1,6, фур ×1,4, оплата +10%',o:1.6,t:1.4,p:1.1};
+  if(m===3&&dd<=8)return {k:'m8',n:'🌷 К 8 Марта',d:'заказов ×1,4 — подарки!',o:1.4,t:1.2,p:1.1};
+  if(m===2&&dd>=18&&dd<=23)return {k:'f23',n:'🎖 К 23 Февраля',d:'заказов ×1,3',o:1.3,t:1.2,p:1};
+  if(m===9&&dd<=5)return {k:'school',n:'🎒 Снова в школу',d:'заказов ×1,4',o:1.4,t:1.3,p:1};
+  return null;}
+const SEAS=seasonOf();
+function rollEvt(d){if(d<3||Math.random()>=(clsI>=2?0.6:0.4))return null;const ks=Object.keys(EVT).filter(k=>k!=='rush'||clsI>=1);return {k:ks[Math.floor(Math.random()*ks.length)]};}
+const NORM={recv:7,load:9,sort:18,put:17,pick:14,press:8,auto:16};
+const normOf=w=>Math.round((NORM[w.role]||20)*GRADES[gradeI(w)].m*(w.out?0.85:1));
+function misCh(w){return (w.out?0.05:0.015)*(upg.light?0.6:1)*(marking?0.8:1)*(nightOn?1.3:1);}
+const FLOORS={'#cfcabb':'бежевый','#b9bec6':'серый','#b8cbe0':'голубой','#c4dcc0':'зелёный','#e2d1b0':'песочный'};
+function floorColor(f){return floorCol||(f===0?'#cfcabb':'#b9bcc4');}
+function setFloorCol(c){if(floorColor(0)===c)return;if(money<2000)return toast('Не хватает денег',1.5);money-=2000;floorCol=c;buildLeft();toast('🎨 Пол перекрашен',1.5);}
+function buyMarking(){if(marking)return;if(money<3000)return toast('Не хватает денег',1.5);money-=3000;marking=true;buildLeft();toast('🟨 Разметка нанесена — меньше пересорта',2);}
+function startInv(){if(invT>0)return;if(money<2000)return toast('Нужно 2000 р.',1.5);money-=2000;invT=40;toast('📋 Инвентаризация: 40 сек стеллажи закрыты. Найдём пересорт и недостачи',4);renderBoss();}
+const VESTS={'#3fbf5a':'зелёные','#e04848':'красные','#3d7be0':'синие','#f28c1e':'оранжевые'};
+const FEM=new Set(['Катя','Оля','Аня','Таня','Лена','Наташа','Юля','Света','Вика','Женя','Марина','Ира','Даша','Алина']);
+const sexOf=w=>FEM.has(w.name)?'f':'m';
+const UNL={gate:3,lockm:4,lockf:4,safe:4,retz:4,floor:5,lift:5,stairs:5,canteen:6,office:7,kgtin:9,kgtrack:9,vault:11};
+const FEAT={gate:['🚪 Ворота приёмки','Больше ворот — больше фур в день. Ставь у левой или правой стены.'],
+ lockm:['👕 Раздевалки и форма','Построй мужскую 🚹 и женскую 🚺 раздевалки. Утром люди переодеваются в форму (+5% к скорости). Если шкафчиков мало — утром очередь. Если раздевалки для кого-то нет — он работает в своей одежде медленнее.'],
+ safe:['🔐 Сейф для телефонов','Телефоны сдают на входе: люди не отвлекаются (+3%) и недостач вдвое меньше.'],
+ retz:['↩ Зона возвратов','Сюда привозят возвраты из ПВЗ. Сортировщики проверяют: годен — на стол, брак — в списание.'],
+ floor:['🏢 Этажи','Купи этаж (Здание). Поставь грузовой лифт — для товара и лестницу — для людей. Наверх ставь стеллажи.'],
+ canteen:['🍲 Столовая','В середине смены люди идут обедать. Сытые работают быстрее. Без столовой после обеда все голодные и медленнее. Нажми на столовую, чтобы прокачать.'],
+ office:['🏢 Офис специалистов','Аналитик, технолог, СБ, бригадир, HR — каждый даёт свой бонус. Нажми на офис, чтобы нанять.'],
+ kgtin:['🧊 КГТ — крупная техника','Приёмка КГТ + стеллажи КГТ. Возят только на рохле, заказ платят ×4.'],
+ vault:['💎 Склад ценного','Дорогой товар. Работать с ним могут только сотрудники с рейтингом 4★ и выше. Заказ ×6. Без СБ бывают кражи.']};
+const unlocked=k=>lvl>=(UNL[k]||0);
+function unlockCheck(){settings.featSeen=settings.featSeen||{};const nw=Object.keys(FEAT).filter(k=>unlocked(k)&&!settings.featSeen[k]);
+  if(!nw.length)return;for(const k of nw)settings.featSeen[k]=1;saveSettings();buildLeft();
+  if(started&&tutStep>=TUT.length){const k=nw[nw.length-1];setTimeout(()=>{if(!uiOpen())infoOpen('feat:'+k);},800);}}
+function busCost(){return 2500*buses;}
+function canteenCost(){return OB('canteen').reduce((a,o)=>a+400*o.lv,0);}
+function lockCap(sx){return OB(sx==='f'?'lockf':'lockm').length*12;}
+function hasLock(){return OB('lockm').length+OB('lockf').length>0;}
+function needDress(w){return hasLock()&&!w.dressed&&!w.noLock&&w.f===0;}
+function goDress(w){const sx=sexOf(w),L=nearest(OW(sx==='f'?'lockf':'lockm'),wpos(w));
+  if(!L){w.noLock=true;say(w,sx==='f'?'Нет женской раздевалки — работаю в своём':'Нет мужской раздевалки — работаю в своём',2.5);return;}
+  const cnt=workers.filter(x=>x.today&&!x.absent&&sexOf(x)===sx).length,crowd=Math.max(1,cnt/Math.max(1,lockCap(sx)));
+  w.why='Переодеваюсь в форму';w.q.push(goN(L),act('idle',2.2*crowd,0,null,{to:L}),fn(()=>{w.dressed=true;w.why=null;if(crowd>1.3&&Math.random()<0.3)say(w,'Очередь в раздевалку… шкафчиков мало',2);}));}
+function wStars(w){if(w.isPlayer)return 5;const L=workers.filter(x=>x.rt);if(!w.rt||!L.length)return 3;const avg=L.reduce((a,x)=>a+x.rt,0)/L.length;
+  return Math.max(1,Math.min(5,Math.round(1+2.6*w.rt/Math.max(1,avg)+(gradeI(w)>=3?0.5:0))));}
+const starStr=w=>'★'.repeat(wStars(w))+'☆'.repeat(5-wStars(w));
 const ROLES={
   recv:{n:'Приёмщик',hat:'#f2c230'},
   sort:{n:'Сортировщик',hat:'#a05ce0'},
@@ -317,6 +370,16 @@ const BUILD={
   stack:{n:'Место для поддонов',c:200,ic:'🗂',tip:'пустые поддоны'},
   press:{n:'Пресс',c:3000,ic:'🗜',tip:'картон и плёнка → тюки'},
   desk:{n:'Стол начальника',c:500,ic:'🧑‍💼',tip:'твой кабинет'},
+  ship:{n:'Зона отгрузки',c:500,ic:'🚚',tip:'сюда относят собранные заказы, отсюда их забирают газели (до 4 заказов)'},
+  retz:{n:'Зона возвратов',c:1500,ic:'↩',tip:'сюда привозят возвраты: проверка — годен на стеллаж, брак в списание'},
+  kgtin:{n:'Приёмка КГТ',c:8000,ic:'🧊',tip:'крупный товар: холодильники, стиралки. Фура КГТ разгружается сюда'},
+  kgtrack:{n:'Стеллаж КГТ',c:1500,ic:'🗃',tip:'хранит 2 единицы КГТ'},
+  lockm:{n:'Раздевалка М',c:4000,ic:'🚹',tip:'мужская: 6 шкафчиков (верх/низ) = 12 человек. Утром переодеваются в форму'},
+  lockf:{n:'Раздевалка Ж',c:4000,ic:'🚺',tip:'женская: 6 шкафчиков (верх/низ) = 12 человек'},
+  safe:{n:'Сейф для телефонов',c:3000,ic:'🔐',tip:'телефоны сдают перед входом: меньше недостач, меньше отвлекаются'},
+  plant:{n:'Растение',c:300,ic:'🌿',tip:'для красоты: штат чуть довольнее (до 10 шт.)'},
+  canteen:{n:'Столовая',c:6000,ic:'🍲',tip:'обед в середине смены. Прокачивай — люди быстрее и довольнее'},
+  vault:{n:'Склад ценного',c:25000,ic:'💎',tip:'дорогой товар: работают только сотрудники с рейтингом 4★+. Заказ ×6'},
   office:{n:'Офис специалистов',c:20000,ic:'🏢',tip:'нанимай аналитика, технолога, СБ, бригадира, HR'},
   jackpark:{n:'Стоянка рохлей',c:300,ic:'🅿',tip:'тут хранятся рохли (до 2 шт.)'},
   gate:{n:'Ворота приёмки',c:15000,ic:'🚪',tip:'ещё ворота для фур: у левой или правой стены на 1 этаже'},
@@ -355,6 +418,12 @@ function initObj(t){switch(t){
   case 'cage':return{o:null,done:0};
   case 'press':return{n:0,res:null,bales:0,on:false};
   case 'stack':return{n:0};
+  case 'ship':return{n:0,inc:0};
+  case 'retz':return{box:[],res:null,trash:0,tres:null};
+  case 'kgtin':return{n:0,res:0};
+  case 'kgtrack':return{k:0,inc:0,out:0};
+  case 'canteen':return{lv:1};
+  case 'vault':return{n:0,res:0};
   default:return{};}}
 function addObj(type,f,x,y){const o=Object.assign({id:oid++,type,f,x,y},initObj(type));objs.push(o);omap.set(k3(f,x,y),o);return o;}
 function delObj(o){objs.splice(objs.indexOf(o),1);omap.delete(k3(o.f,o.x,o.y));}
@@ -445,7 +514,9 @@ function licW(id){const w=workers.find(w=>w.id===id);if(!w||w.lic)return;if(w.ou
   money-=LIC_COST;w.lic=true;say(w,'Получил права на электророхлю! ⚡',2.5);showWPop(w);}
 function wSpeed(w){
   if(w.isPlayer)return 1.15*dirtyMul();
-  let s=GRADES[gradeI(w)].m*(w.ej?1.6:1)*w.skill*(w.out?1:moodMul(w))*(0.9+0.2*w.mood/100);if(w.sched==='7/0')s*=0.9;if(w.rushT>0)s*=1.25;if(boostT>0)s*=1.5;if(w.happyT>0)s*=1.1;if(spec.tech)s*=1.1;return s*dirtyMul();
+  let s=GRADES[gradeI(w)].m*(w.ej?1.6:1)*w.skill*(w.out?1:moodMul(w))*(0.9+0.2*w.mood/100);if(w.sched==='7/0')s*=0.9;if(w.rushT>0)s*=1.25;if(boostT>0)s*=1.5;if(w.happyT>0)s*=1.1;if(spec.tech)s*=1.1;if(hasLock()){if(w.dressed&&!w.noLock)s*=1.05;else if(w.noLock)s*=0.92;}if(w.out&&w.dep)s*=1.05;if(OB('safe').length)s*=1.03;if(nightOn)s*=0.93;
+  if(dayT>DAYLEN*0.55){if(w.fed){const cn=OB('canteen')[0];s*=1+0.03*(cn?cn.lv:1);}else if(!OB('canteen').length)s*=0.95;}
+  return s*dirtyMul();
 }
 function changeFloor(w,nf,c){c=c||nearConn(w.tx,w.ty)||lifts[0];if(!c)return;if(w&&w.isPlayer)setTimeout(buildLeft,0);const n=freeNb(nf,c.x,c.y)||[c.x,c.y+1];placeAt(w,nf,n[0],n[1]);if(w.isPlayer)viewF=nf;}
 function moveAlong(w,a,dt){
@@ -465,10 +536,12 @@ function upd(w,dt){
     if(w.quit||w.fire){dropJackSomewhere(w);w.dead=true;return;}
     if(w.absPend){w.absent=true;w.absPend=false;return;}
     if(w.breakPend){if(w.jack&&!w.pallet&&jackBack(w))return;w.breakPend=false;say(w,'Иду на перерыв ☕',2);
-      w.q.push({k:'go',f:0,o:DOOR,goal:(x,y)=>x===DOOR.x&&y===DOOR.y},fn(()=>{w.onBreak=true;w.hidden=true;w.why='☕ На перерыве';}));return;}
+      {const cn=OW('canteen')[0];if(cn&&w.lunch)w.q.push(goN(cn),fn(()=>{w.onBreak=true;w.hidden=true;w.brkAt=cn;w.why='🍲 Обедаю';}));
+      else w.q.push({k:'go',f:0,o:DOOR,goal:(x,y)=>x===DOOR.x&&y===DOOR.y},fn(()=>{w.onBreak=true;w.hidden=true;w.brkAt=null;w.why='☕ На перерыве';}));}return;}
+    if(needDress(w)){goDress(w);if(w.q.length)return;}
     if((w.thinkCD=(w.thinkCD||0)-dt)>0&&w.why)return;
     think(w);if(!w.q.length)w.thinkCD=0.4+Math.random()*0.4;
-    if(w.q.length){w.jobs=(w.jobs||0)+1;if(!w.out)w.ops=(w.ops||0)+1;}
+    if(w.q.length){w.jobs=(w.jobs||0)+1;w.ops=(w.ops||0)+1;}
     if(!w.q.length&&w.jack&&w.carry==null&&!w.pallet&&jackBack(w)){w.why=null;return;}
     if(!w.q.length){w.pose=w.carry!=null?'carry':'idle';w.moving=false;let wy=whyIdle(w.role);if(wy==='RECV')wy=whyRecv(w);if(w.jackWait&&jackQ.includes(w.id))wy=`Жду свободную рохлю (я ${jackQ.indexOf(w.id)+1}-й в очереди)`;setWhy(w,wy);return;}
     w.why=null;
@@ -497,10 +570,10 @@ function autoThink(w){
   if(w.f>0){tPut(w);if(w.q.length){w.doing='put';return;}tPick(w);if(w.q.length){w.doing='pick';return;}w.doing=null;autoFloor(w);return;}
   const sc={recv:OS('recv').filter(o=>o.p&&!o.p.acc&&!o.p.res).length*3,
     press:(OW('press').length?objs.reduce((a,o)=>a+(o.trash||0),0)+(OW('press').some(o=>o.n>=6)?6:0):0),
-    load:OB('dock').filter(o=>o.p&&!o.p.res).length*3+(objs.reduce((a,o)=>a+(o.trash||0),0)>=4?2:0)+(OW('press').some(o=>o.n>=6)?3:0),
-    sort:OS('recv').reduce((a,o)=>a+(o.p&&o.p.acc&&!o.p.res?Math.max(0,Math.min(3-(o.p.sr||0),o.p.boxes.length-(o.p.sr||0)))*3:0),0),
+    load:OB('dock').filter(o=>o.p&&!o.p.res).length*3+(kgtCan(w)?OW('kgtin').reduce((a,o)=>a+o.n-o.res,0)*3+kgtOrd*4:0)+(objs.reduce((a,o)=>a+(o.trash||0),0)>=4?2:0)+(OW('press').some(o=>o.n>=6)?3:0),
+    sort:OW('retz').reduce((a,o)=>a+o.box.length*2,0)+OS('recv').reduce((a,o)=>a+(o.p&&o.p.acc&&!o.p.res?Math.max(0,Math.min(3-(o.p.sr||0),o.p.boxes.length-(o.p.sr||0)))*3:0),0),
     put:OS('table').reduce((a,o)=>a+o.n.reduce((x,v,i)=>x+v-o.out[i],0),0)+OB('rack').filter(r=>r.off&&r.unload).reduce((a,r)=>a+r.cells.filter(v=>v!==null).length,0),
-    pick:OS('cage').reduce((a,c)=>a+(c.o?c.o.items.filter(i=>i.st==='w').length*2:0),0)+cargo.filter(c=>c.kind==='pick'&&c.f===0&&c.eta<=0&&!c.res).length*3};
+    pick:OS('cage').reduce((a,c)=>a+(c.o?c.o.items.filter(i=>i.st==='w').length*2:0)+(c.ready&&!c.sres?5:0),0)+(valOrd>0&&wStars(w)>=4?valOrd*4:0)+cargo.filter(c=>c.kind==='pick'&&c.f===0&&c.eta<=0&&!c.res).length*3};
   for(const r of Object.keys(sc).sort((a,b)=>sc[b]-sc[a])){if(sc[r]<=0)break;TF[r](w);if(w.q.length){w.doing=r;return;}}
   w.doing=null;autoFloor(w);
 }
@@ -517,14 +590,32 @@ function tRecv(w){
   let s;
   if(w.role==='recv'){const po=getPost(w);s=po&&po.p&&!po.p.acc&&!po.p.res?po:null;}
   else s=nearest(OS('recv').filter(o=>!ownerValid(o)&&o.p&&!o.p.acc&&!o.p.res),wpos(w));
-  if(!s)return;
+  if(!s){if(w.role==='recv'){const d=[...OB('dock')].find(o=>o.p&&!o.p.res&&!o.p.acc),po=getPost(w);if(d&&po&&!po.p&&!po.r&&(isEasy()||w.jack||freeJackPark())){if(movePal(w,d,po))say(w,'Сам подвезу — быстрее будет!',1.5);}}return;}
   const p=s.p,to={to:s};p.res=w.id;
   w.q.push(goN(s),act('cut',1.6,0,()=>{p.wrap=false;if(!isEasy()||Math.random()<0.5)s.trash++;},to));
   for(let i=0;i<p.boxes.length;i++)w.q.push(act('scan',0.45,0,null,to));
   if(isErr(w))w.q.push(oops(w),act('scan',1.4,0,null,to));
   w.q.push(fn(()=>{p.acc=true;p.res=null;ds.pallets++;earn(p.boxes.length*15,w.px,w.py-30);}));
 }
+function tShip(w){const cg=nearest(OB('cage').filter(c=>c.ready&&c.o&&!c.sres),wpos(w));if(!cg)return false;
+  const sh=nearest(OW('ship').filter(o=>o.n+o.inc<4),cg);if(!sh)return false;cg.sres=w.id;sh.inc++;let oo=null;
+  w.q.push(goN(cg),act('lift',0.6,0,null,{to:cg,box:'ord'}),fn(()=>{oo=cg.o;cg.o=null;cg.ready=false;cg.sres=null;w.carry='ord';}),
+    goN(sh),act('place',0.5,0,null,{to:sh}),fn(()=>{w.carry=null;sh.inc--;sh.n++;if(oo)outQ.push({mis:oo.items.filter(i=>i.mis).length,n:oo.items.length,exp:oo.exp,dl:oo.dl,t0:oo.t0,sh:sh.id});}));return true;}
+function tRet(w){const z=nearest(OW('retz').filter(o=>o.box.length&&!o.res),wpos(w));if(!z)return false;const t=z.box[z.box.length-1];
+  const tb=nearest(OW('table').filter(o=>o.n[t]+o.inc[t]<CAP),z);if(!tb)return false;z.res=w.id;tb.inc[t]++;let ok=true;
+  w.q.push(goN(z),act('scan',1.6,0,null,{to:z}),fn(()=>{z.box.pop();z.res=null;ok=Math.random()<0.8;if(ok)w.carry=t;else{z.trash++;tb.inc[t]--;ds.brak=(ds.brak||0)+1;say(w,'Брак — в списание',1.5);w.q.length=0;}}),
+    goN(tb),act('place',0.4,0,null,{to:tb}),fn(()=>{if(!ok)return;w.carry=null;tb.inc[t]--;tb.n[t]++;}));return true;}
+function tVal(w){if(valOrd<=0||wStars(w)<4)return false;const v=nearest(OW('vault').filter(o=>o.n-o.res>0),wpos(w)),sh=v&&nearest(OW('ship').filter(o=>o.n+o.inc<4),v);if(!v||!sh)return false;
+  v.res++;sh.inc++;valOrd--;w.q.push(goN(v),act('scan',1.2,0,null,{to:v}),act('take',0.5,0,null,{to:v,box:'val'}),fn(()=>{v.n--;v.res--;w.carry='val';}),goN(sh),act('place',0.5,0,null,{to:sh}),fn(()=>{w.carry=null;sh.inc--;sh.n++;outQ.push({n:1,val:true,exp:false,t0:gT,sh:sh.id});}));return true;}
+function kgtCan(w){return isEasy()||w.jack||w.ej||w.isPlayer;}
+function tKgt(w){if(!kgtCan(w))return false;
+  if(kgtOrd>0){const r=nearest(OB('kgtrack').filter(o=>o.k-o.out>0),wpos(w)),sh=r&&nearest(OW('ship').filter(o=>o.n+o.inc<4),r);
+    if(r&&sh){r.out++;sh.inc++;kgtOrd--;w.q.push(goN(r),act('lift',0.9,0,null,{to:r,box:'kgt'}),fn(()=>{r.k--;r.out--;w.carry='kgt';}),goN(sh),act('place',0.8,0,null,{to:sh}),fn(()=>{w.carry=null;sh.inc--;sh.n++;outQ.push({n:1,kgt:true,exp:false,t0:gT,sh:sh.id});}));return true;}}
+  const z=nearest(OW('kgtin').filter(o=>o.n-o.res>0),wpos(w)),r=z&&nearest(OW('kgtrack').filter(o=>o.k+o.inc<2),z);
+  if(z&&r){z.res++;r.inc++;w.q.push(goN(z),act('lift',0.9,0,null,{to:z,box:'kgt'}),fn(()=>{z.n--;z.res--;w.carry='kgt';}),goN(r),act('place',0.8,0,null,{to:r}),fn(()=>{w.carry=null;r.inc--;r.k++;}));return true;}
+  return false;}
 function tSort(w){
+  if(tRet(w))return;
   const fb=nearest(OB('bfloor').filter(o=>!o.res&&OW('table').some(tb=>tb.n[o.t]+tb.inc[o.t]<CAP)),wpos(w));
   if(fb){const t=fb.t,tb=nearest(OW('table').filter(o=>o.n[t]+o.inc[t]<CAP),fb);fb.res=w.id;tb.inc[t]++;
     w.q.push(goN(fb),act('lift',0.55,0,null,{to:fb,box:t}),fn(()=>{delObj(fb);w.carry=t;}),goN(tb),act('scan',0.4,0,null,{to:tb}),act('place',0.4,0,null,{to:tb}),fn(()=>{w.carry=null;tb.inc[t]--;tb.n[t]++;}));return;}
@@ -568,10 +659,11 @@ function findStock(t,from,fl){let best=null,bs=1e9;
   for(const r of OS('rack')){if(fl==null?!rackOk(r):r.f!==fl)continue;const c=r.cells.findIndex((v,i)=>v===t&&!r.res[i]);if(c<0)continue;
     const sc=dist(r,from);if(sc<bs){bs=sc;best=[r,c];}}return best;}
 function tPut(w){
+  if(invT>0)return;
   if(w.f>0){const F=w.f,cg=cargo.find(c=>c.kind==='put'&&c.f===F&&c.eta<=0&&!c.res);if(!cg)return;const L=nearConn(cg.r.x,cg.r.y,true);if(!L)return;
     cg.res=w.id;const r=cg.r,c=cg.c,t=cg.t,lo={x:L.x,y:L.y,f:F};
     w.q.push(goN(lo),act('take',0.5,0,null,{to:lo,box:t}),fn(()=>{const i=cargo.indexOf(cg);if(i>=0)cargo.splice(i,1);w.carry=t;}),
-      goN(r),act('scan',0.5,0,null,{to:r}),act('place',0.5,0,null,{to:r}),fn(()=>{r.cells[c]=t;r.res[c]=null;w.carry=null;}));return;}
+      goN(r),act('scan',0.5,0,null,{to:r}),act('place',0.5,0,null,{to:r}),fn(()=>{r.cells[c]=t;r.res[c]=null;w.carry=null;if(Math.random()<misCh(w)){r.mis=r.mis||{};r.mis[c]=1;}}));return;}
   for(const tb of byNear(OS('table'),wpos(w))){
     const ord=[0,1,2].filter(t=>tb.n[t]-tb.out[t]>0).sort((a,b)=>(tb.n[b]-tb.out[b])-(tb.n[a]-tb.out[a]));
     for(const t of ord){let rc=findFreeCell(t,tb,0),up=false;
@@ -582,7 +674,7 @@ function tPut(w){
         w.q.push(goN(lo),act('place',0.5,0,null,{to:lo}),fn(()=>{w.carry=null;cargo.push({kind:'put',t,f:r.f,eta:2.5,r,c});}));return;}
       w.q.push(goN(r),act('scan',0.5,0,null,{to:r}));
       if(isErr(w))w.q.push(oops(w),act('scan',1.2,0,null,{to:r}));
-      w.q.push(act('place',0.5,0,null,{to:r}),fn(()=>{r.cells[c]=t;r.res[c]=null;w.carry=null;}));
+      w.q.push(act('place',0.5,0,null,{to:r}),fn(()=>{r.cells[c]=t;r.res[c]=null;w.carry=null;if(Math.random()<misCh(w)){r.mis=r.mis||{};r.mis[c]=1;}}));
       return;}
   }
 }
@@ -594,6 +686,8 @@ function tRackUnload(w){
   return false;}
 function tPutAll(w){tPut(w);if(!w.q.length)tRackUnload(w);}
 function tPick(w){const F=w.f;
+  if(invT>0)return;
+  if(F===0&&(tShip(w)||tVal(w)))return;
   if(F===0){const k=cargo.find(c=>c.kind==='pick'&&c.f===0&&c.eta<=0&&!c.res),L=k&&nearConn(w.tx,w.ty,true);
     if(k&&L){k.res=w.id;const lo={x:L.x,y:L.y,f:0},cg=k.cg,it=k.it;
       w.q.push(goN(lo),act('take',0.5,0,null,{to:lo,box:k.t}),fn(()=>{const i=cargo.indexOf(k);if(i>=0)cargo.splice(i,1);w.carry=k.t;}),
@@ -603,7 +697,7 @@ function tPick(w){const F=w.f;
     for(const it of o.items){if(it.st!=='w')continue;
       const rc=findStock(it.t,wpos(w),F);if(!rc)continue;const [r,c]=rc;r.res[c]='out';it.st='r';
       w.q.push(goN(r),act('scan',0.5,0,null,{to:r}),act('take',0.5,0,null,{to:r,box:it.t}),
-        fn(()=>{r.cells[c]=null;r.res[c]=null;w.carry=it.t;}));
+        fn(()=>{r.cells[c]=null;r.res[c]=null;w.carry=it.t;if(r.mis&&r.mis[c]){it.mis=1;delete r.mis[c];}}));
       if(isErr(w))w.q.push(oops(w),act('scan',1.2,0,null,{to:r}));
       if(F>0){const L=nearConn(r.x,r.y,true),lo={x:L.x,y:L.y,f:F};
         w.q.push(goN(lo),act('place',0.5,0,null,{to:lo}),fn(()=>{w.carry=null;cargo.push({kind:'pick',t:it.t,f:0,eta:2.5,it,cg});}));return;}
@@ -648,6 +742,7 @@ function movePal(w,from,to){
 }
 function finishPress(o,w){o.on=false;o.n-=6;o.res=null;o.bales++;ds.bales++;st.bales=(st.bales||0)+1;earn(150,w.px,w.py-30);float(w.px,w.py-44,'тюк продан','#fff');}
 function tLoad(w){
+  if(w.f===0&&(tShip(w)||tKgt(w)||tVal(w)))return;
   const d=[...OB('dock'),...OB('pfloor')].find(o=>o.p&&!o.p.res&&!(o.p.acc&&!o.p.boxes.length)),r=nearest(OW('recv').filter(o=>!o.p&&!o.r),wpos(w));
   if(d&&r&&movePal(w,d,r))return;
   const st=OW('stack');
@@ -673,7 +768,8 @@ function say(w,t,d){w.say=t;w.sayT=d||3;}
 function setWhy(w,t){if(w.why!==t){w.why=t;if(talkLvl()>=2)say(w,t,3);}}
 function talkLvl(){return settings.talk==null?1:settings.talk;}
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
-function whyIdle(r){
+function whyIdle(r){if(invT>0&&['put','pick','auto'].includes(r))return '📋 Идёт инвентаризация — стеллажи закрыты';return whyIdle0(r);}
+function whyIdle0(r){
   switch(r){
     case 'recv':return 'RECV';
     case 'sort':if(!OW('table').length)return 'Нет стола сортировки';
@@ -786,6 +882,7 @@ function playerDrop(){
   if(!P.pallet){
     if(typeof P.carry==='number'){const sp=dropSpot(P);if(!sp)return toast('Тут негде положить коробку',2);
       const t=P.carry,o=addObj('bfloor',P.f,sp[0],sp[1]);o.t=t;o.res='P';P.q.push(act('place',0.35,0,()=>{o.res=null;P.carry=null;},{to:o}));return;}
+    if(P.carry==='ord')return toast('Заказ отнеси в зону отгрузки 🚚 (E)',2);
     if(P.carry==='trash')return toast('Мусор неси в пресс',2);
     if(P.jack){const sp=dropSpot(P);if(!sp)return toast('Тут негде поставить рохлю',2);const o=addObj('jackfloor',P.f,sp[0],sp[1]);o.res='P';P.q.push(act('hook',0.35,0,()=>{o.res=null;P.jack=false;},{to:o}));return;}
     return toast(P.jack?'Q — сбросить поддон. Рохлю ставь на стоянку (E)':'Q — положить коробку на пол или сбросить поддон с рохли',2);}
@@ -892,6 +989,9 @@ function pickChoice(i){const o=choiceOpts&&choiceOpts[i];hideChoice();if(o&&!pla
 function takeTrash(P,o){if(P.jack){P.fail='FREE';return;}o.tres='P';P.q.push(act('lift',0.45,0,null,{to:o,box:'trash'}),fn(()=>{P.trashN=Math.min(o.trash,6);o.trash-=P.trashN;o.tres=null;P.carry='trash';}));}
 function tryAct(P,o){
   const to={to:o},box=P.carry;
+  if(box==='ord'&&o.type!=='ship')return false;
+  if(o.type==='ship'){if(box==='ord'&&o.n+o.inc<4){const oo=P.ordO;P.q.push(act('place',0.4,0,null,to),fn(()=>{P.carry=null;P.ordO=null;o.n++;if(oo)outQ.push({mis:oo.items.filter(i=>i.mis).length,n:oo.items.length,exp:oo.exp,dl:oo.dl,t0:oo.t0,sh:o.id});}));return true;}return false;}
+  if(o.type==='cage'&&o.ready&&o.o&&!o.sres&&box==null&&!P.pallet){o.sres='P';P.q.push(act('lift',0.5,0,null,{to:o,box:'ord'}),fn(()=>{P.ordO=o.o;o.o=null;o.ready=false;o.sres=null;P.carry='ord';}));return true;}
   if(P.pallet){const p=P.pallet;
     if(o.type==='recv'&&!o.p&&!o.r){P.q.push(act('hook',0.4,0,()=>{o.p=p;P.pallet=null;},to));return true;}
     if(o.type==='stack'&&!p.boxes.length){P.q.push(act('hook',0.4,0,()=>{o.n++;P.pallet=null;},to));return true;}
@@ -901,6 +1001,7 @@ function tryAct(P,o){
     case 'lift':if(floors<2)return false;{const cc=conns().find(c=>c.x===o.x&&c.y===o.y);P.q.push(act('idle',0.8,0,()=>changeFloor(P,(P.f+1)%floors,cc),to));}return true;
     case 'desk':openBoss();return true;
     case 'office':infoOpen('office');return true;
+    case 'canteen':infoOpen('canteen');return true;
     case 'jackfloor':if(!P.jack&&box==null&&!P.pallet&&!o.res){o.res='P';P.q.push(act('hook',0.4,0,()=>{delObj(o);P.jack=true;},to));return true;}
       P.fail=P.jack?'У тебя уже есть рохля':'Освободи руки';return false;
     case 'jackpark':
@@ -973,7 +1074,7 @@ function genTasks(){const d=day;const pool=[{k:'ship',n:5+2*d},{k:'pallets',n:2+
 function taskVal(t){return t.k==='earned'?dayInc:ds[t.k];}
 function checkTasks(){for(const t of tasks)if(!t.done&&taskVal(t)>=t.n){t.done=true;tasksDone++;money+=t.rw;addXP(15);toast(`🎯 Задание выполнено: ${TASKP[t.k]} ${t.n} · +${t.rw} р.`,3);if(AC)chime();}}
 const lvlNeed=l=>40*l;
-function addXP(n){xp+=n;while(xp>=lvlNeed(lvl)){xp-=lvlNeed(lvl);lvl++;const b=1000*lvl;money+=b;setTimeout(()=>toast(`⭐ Уровень склада ${lvl}! Бонус +${b} р.`,4),600);if(AC)chime();}}
+function addXP(n){xp+=n;while(xp>=lvlNeed(lvl)){xp-=lvlNeed(lvl);lvl++;const b=1000*lvl;money+=b;setTimeout(()=>toast(`⭐ Уровень склада ${lvl}! Бонус +${b} р.`,4),600);setTimeout(unlockCheck,1500);if(AC)chime();}}
 function tasksHTML(){return `<b>🎯 Задания дня</b><br>`+tasks.map(t=>{const v=Math.min(taskVal(t),t.n);return `<span style="color:${t.done?'#7dff7d':'#eee'}">${t.done?'✔':'○'} ${TASKP[t.k]}: ${v}/${t.n}</span> <small style="color:#f2c230">+${t.rw}</small>`;}).join('<br>')+'<br><br>';}
 // ===== рейтинг, события, класс склада
 let gT=0,rating=4.0,clsI=0,evt=null,cancelToday=0,retT=0;
@@ -991,22 +1092,24 @@ function syncVans(){const want=[...Array(vansOwn).fill('own'),...Array(pvz*2).fi
     if(have>need){let extra=have-need;vans=vans.filter(v=>{if(v.k===k&&v.st==='idle'&&extra>0){extra--;return false;}return true;});}}}
 function buyVan(){if(money<vanCost())return toast('Не хватает денег',1.5);money-=vanCost();vansOwn++;syncVans();toast('🚐 Своя газель куплена! Возит быстрее и больше',3);if(AC)chime();renderBoss();}
 function deliver(o){const n=o.n,ontime=o.exp?gT<=o.dl:true,wt=gT-(o.t0||gT);
-  const pay=Math.round(n*PAY*payMul()*clsPay()*(o.exp&&ontime?2:1));earn(pay,-ROAD*T+40,10*T);
-  if(o.exp){rateOrder(ontime?5:2,ontime?0.06:0.08);}else rateOrder(waitScore(wt),0.04);
+  const pay=Math.round((n-(o.mis||0))*PAY*(o.kgt?4:o.val?6:1)*(SEAS?SEAS.p:1)*payMul()*clsPay()*(o.exp&&ontime?2:1));earn(pay,-ROAD*T+40,10*T);
+  if(o.mis){rateOrder(2,0.06);ds.mis=(ds.mis||0)+o.mis;const rz=OW('retz')[0];if(rz)for(let i=0;i<o.mis;i++)rz.box.push(Math.floor(Math.random()*3));toast(`🔀 Пересорт! Клиент получил не тот товар (${o.mis} шт.) — возврат, рейтинг ↓. Помогает инвентаризация и разметка`,4);}
+  else if(o.exp){rateOrder(ontime?5:2,ontime?0.06:0.08);}else rateOrder(waitScore(wt),0.04);
   dayShip+=n;totalShip+=n;ds.ship+=n;ds.orders++;addXP(n);if(dayShip>bestShip)bestShip=dayShip;}
 function vanStep(dt){syncVans();
   const order=vans.slice().sort((a,b)=>(a.k==='own'?0:1)-(b.k==='own'?0:1));
   for(const v of order){const P=VAN[v.k];
     if(v.st==='idle'&&outQ.length){v.st='load';v.t=0;}
-    if(v.st==='load'){v.t+=dt;while(v.load.length<P.cap&&outQ.length)v.load.push(outQ.shift());
+    if(v.st==='load'){v.t+=dt;while(v.load.length<P.cap&&outQ.length){const q=outQ.shift();if(q.sh){const so=objs.find(o=>o.id===q.sh);if(so)so.n=Math.max(0,so.n-1);}v.load.push(q);}
       if(v.load.length>=P.cap||v.t>10){v.st='out';v.t=P.trip;if(v.k==='rent'){const c=P.cost*v.load.reduce((a,o)=>a+o.n,0);money-=c;dayInc-=c;}van=1;}}
     else if(v.st==='out'){v.t-=dt;if(v.t<=0){v.load.forEach(deliver);if(v.load.length&&AC)chime();v.load=[];v.st='back';v.t=P.back;}}
     else if(v.st==='back'){v.t-=dt;if(v.t<=0)v.st='idle';}}}
 function vanInfo(){const own=vans.filter(v=>v.k==='own'),rent=vans.filter(v=>v.k==='rent'),way=vans.filter(v=>v.st==='out'||v.st==='back').length;
   return `Свои: ${own.length} · наёмные: ${rent.length} <small>(${VAN.rent.cost} р. за товар)</small><br>В пути: ${way} · ждут отправки: <b>${outQ.length}</b> зак.`;}
-const PAY=150,PIECE=4;
+const PAY=150,PIECE=4,PIECE_ONLY=14;let payMode='fix';
+function payOf(w){const k=nightOn?1.2:1;if(w.out)return w.today?Math.round(w.sal*k):0;return Math.round((payMode==='piece'?(w.ops||0)*PIECE_ONLY:(w.today?w.sal:0)+(w.ops||0)*PIECE)*k);}
 function payMul(){return (0.7+rating*0.08)*(evt&&evt.k==='black'?1.2:1);}
-function ordMul(){return (0.5+rating/5)*(evt&&evt.k==='black'?2.5:1);}
+function ordMul(){return (0.5+rating/5)*(evt&&evt.k==='black'?2.5:1)*(SEAS?SEAS.o:1)*(nightOn?1.4:1);}
 const EVT={
  black:{n:'🔥 Чёрная пятница',d:'Заказов в 2,5 раза больше, фуры чаще, оплата +20%'},
  audit:{n:'🕵 Проверка',d:'Вечером проверка: без мусора и отмен — премия, иначе штраф'},
@@ -1033,7 +1136,7 @@ function clsHTML(){const nx=CLASSES[clsI+1];
   return h;}
 // ===== УЗКИЕ МЕСТА (светофор + подсказки)
 let bnT=0,bn={recv:0,sort:0,put:0,pick:0,ship:0,space:0,trash:0},redT={},hintCD={},curHint=null;
-const BN_N={ship:'🚐 Доставка в ПВЗ',recv:'📥 Приёмка',sort:'🧮 Сортировка',put:'🗄 Размещение',pick:'<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> Подбор',space:'📦 Место на стеллажах',trash:'🗑 Мусор'};
+const BN_N={ship:'🚚 Отгрузка',recv:'📥 Приёмка',sort:'🧮 Сортировка',put:'🗄 Размещение',pick:'<svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg> Подбор',space:'📦 Место на стеллажах',trash:'🗑 Мусор'};
 function bnRaw(){
   const recv=[...OB('dock'),...OB('pfloor')].filter(o=>o.p&&!o.p.acc).length+OB('recv').filter(o=>o.p&&!o.p.acc).length;
   const sort=OB('recv').reduce((a,o)=>a+(o.p&&o.p.acc?o.p.boxes.length:0),0)+OB('bfloor').length;
@@ -1042,15 +1145,18 @@ function bnRaw(){
   const cap=OB('rack').reduce((a,r)=>a+r.cells.length,0),used=OB('rack').reduce((a,r)=>a+r.cells.filter(v=>v!==null).length,0);
   const space=cap?Math.round(used/cap*100):100;
   const trash=objs.reduce((a,o)=>a+(o.trash||0),0);
-  return {recv,sort,put,pick,space,trash,ship:outQ.length};}
+  return {recv,sort,put,pick,space,trash,ship:outQ.length+OB('cage').filter(c=>c.ready).length*2};}
 function bnLevel(k,v){const L={ship:[4,10],recv:[1.5,3.5],sort:[8,16],put:[6,12],pick:[10,20],space:[80,95],trash:[6,12]}[k];return v<L[0]?0:v<L[1]?1:2;}
 function roleCount(r){return workers.filter(w=>!w.absent&&w.role===r).length;}
 function bnAdvice(k){const lv=bnLevel(k,bn[k]);const need=Math.max(1,Math.min(3,Math.ceil(bn[k]/(k==='recv'?2:8))));
   if(['recv','sort','put','space'].includes(k)&&bn.space>=88)return{t:`Стеллажи заполнены на ${Math.round(bn.space)}% — товар некуда класть, поэтому стоит вся цепочка. Нанимать людей бесполезно — нужны стеллажи`,act:'build:rack',b:'🗄 Поставить стеллажи'};
   if(['recv','sort','put','pick'].includes(k)&&idleOut().filter(w=>w.role==='auto').length>=need)return null;
   switch(k){
+    case 'ship':if(OB('cage').some(c=>c.ready)&&OW('ship').every(o=>o.n+o.inc>=4))return{t:'Зоны отгрузки забиты — поставь ещё одну или купи газель',act:'build:ship',b:'🚚 Поставить зону отгрузки'};
+      if(OB('cage').some(c=>c.ready))return{t:'Собранные заказы стоят в клетках — некому отнести в отгрузку. Нужны подборщики или грузчики',act:'hire:load:1',b:'👷 Нанять грузчика'};break;
     case 'recv':if(!OW('recv').some(o=>!o.p&&!o.r))return{t:'Все места приёмки заняты — поставь ещё одно',act:'build:recv',b:'📥 Поставить место приёмки'};
       if(!isEasy()&&!freeJackPark()&&roleCount('load'))return{t:'Грузчикам не хватает рохлей',act:'jack',b:'🛒 Купить рохлю'};
+      if(OB('dock').filter(o=>o.p).length>=3&&OW('recv').filter(o=>!o.p&&!o.r).length>=2)return{t:'Поддоны стоят у ворот, а места приёмки пустые — некому подвезти. Нужны грузчики с рохлями',act:'hire:load:2',b:'👷 Нанять 2 грузчика',act2:isEasy()?null:'jack',b2:'🛒 Купить рохлю'};
       return{t:`Поддоны ждут у ворот. Нужно ещё ${need} чел. на приёмку`,act:'hire:recv:'+need,b:`👷 Нанять ${need} приёмщ. (аутсорс)`,act2:'hire:load:1',b2:'🛒 +1 грузчик'};
     case 'sort':if(!OW('table').length||OW('table').every(t=>t.n.every((v,i)=>v+t.inc[i]>=CAP)))return{t:'Столы сортировки забиты — нужен ещё стол или люди на размещение',act:'build:table',b:'🧮 Поставить стол'};
       return{t:`Коробки ждут сортировки. Нужно ещё ${need} сортировщ.`,act:'hire:sort:'+need,b:`👷 Нанять ${need} сортировщ.`};
@@ -1092,16 +1198,34 @@ const specSal=()=>Object.keys(spec).reduce((a,k)=>a+SPEC[k].c,0);
 function specToggle(k){if(!OB('office').length)return toast('Сначала построй 🏢 Офис',2);if(spec[k])delete spec[k];else spec[k]=1;infoOpen('office');hud();}
 let pplF='all';
 function pplHTML(){const act=workers.filter(w=>!w.quit&&!w.fire);
-  const chips=[['all','Все',act.length],...Object.keys(ROLES).map(r=>[r,ROLES[r].n,act.filter(w=>w.role===r).length]).filter(c=>c[2]),['idle','😴 Без дела',act.filter(w=>!w.absent&&!w.q.length&&!w.cur).length]];
-  const L=act.filter(w=>pplF==='all'||(pplF==='idle'?(!w.absent&&!w.q.length&&!w.cur):w.role===pplF));
+  const chips=[['all','Все',act.length],...Object.keys(ROLES).map(r=>[r,ROLES[r].n,act.filter(w=>w.role===r).length]).filter(c=>c[2]),['idle','😴 Без дела',act.filter(w=>!w.absent&&!w.q.length&&!w.cur).length],['top','🏆 Рейтинг','']];
+  let L=act.filter(w=>pplF==='all'||pplF==='top'||(pplF==='idle'?(!w.absent&&!w.q.length&&!w.cur):w.role===pplF));
+  if(pplF==='top')L=L.filter(w=>!w.out||w.ops).sort((a,b)=>(b.ops||0)-(a.ops||0));
   return `<h2 style="margin-top:0">👥 Сотрудники</h2><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">`+chips.map(c=>`<button onclick="pplF='${c[0]}';infoOpen('ppl')" style="padding:4px 8px;${pplF===c[0]?'background:#f2c230;color:#000':''}">${c[0]in ROLES?`<span class="dot" style="background:${ROLES[c[0]].hat}"></span>`:''}${c[1]} ${c[2]}</button>`).join('')+'</div>'+
-   (L.length?L.map(w=>{const stt=w.absent?(w.out?'не вышел':'выходной'):w.onBreak?'☕ перерыв':(w.q.length||w.cur)?'работает':'😴 стоит';
-     return `<div style="display:flex;align-items:center;gap:6px;padding:4px;border-bottom:1px solid #333"><span class="dot" style="background:${ROLES[w.role].hat}"></span><div style="flex:1"><b>${w.name}</b>${w.lic?' ⚡права':''} <small style="color:#aaa">${ROLES[w.role].n} · ${w.out?'аутсорс':'штат'} · ${GRADES[gradeI(w)].n}${floors>1?' · этаж '+(w.f+1):''} · ${stt}</small></div>`+
-     (!w.absent?`<button onclick="findW2(${w.id})" style="padding:4px 8px">📍 Найти</button>`:'')+
-     (w.role==='load'&&!w.out&&!w.lic?`<button onclick="licW(${w.id});infoOpen('ppl')" style="padding:4px 8px">🪪 Права ${LIC_COST}</button>`:'')+'</div>';}).join(''):'<div style="color:#aaa">Никого</div>')+
+   (L.length?L.map(w=>{const stt=w.sickD?'🤒 болеет':w.vacD?'🏖 в отпуске':w.lateT>0?'⏰ опаздывает':w.absent?(w.out?'не вышел':'выходной'):w.onBreak?'☕ перерыв':(w.q.length||w.cur)?'работает':'😴 стоит';
+     const ix=L.indexOf(w),med=pplF==='top'?(['🥇','🥈','🥉'][ix]||(ix+1)+'.')+' ':'';
+     return `<div style="display:flex;align-items:center;gap:6px;padding:4px;border-bottom:1px solid #333"><span class="dot" style="background:${ROLES[w.role].hat}"></span><div style="flex:1">${med}<b>${w.name}</b>${w.eom?' 🏅':''}${w.sickD?' 🤒':''}${w.vacD?' 🏖':''}${kpiOn&&!w.absent?` <small style="color:${(w.ops||0)>=normOf(w)?'#7dff7d':'#aaa'}">норма ${w.ops||0}/${normOf(w)}</small>`:''}${pplF==='top'?` <b style="color:#f2c230">${w.ops||0} оп.</b>${w.out?'':` · ${payMode==='piece'?(w.ops||0)*PIECE_ONLY:(w.ops||0)*PIECE} р.`}${w.opsY!=null?` <small style="color:#888">(вчера ${w.opsY})</small>`:''}`:''}${w.lic?' ⚡права':''} <small style="color:#aaa"><span style="color:#f2c230">${starStr(w)}</span> ${ROLES[w.role].n} · ${w.out?'аутсорс':'штат'} · ${GRADES[gradeI(w)].n}${floors>1?' · этаж '+(w.f+1):''} · ${stt}</small></div>`+
+     (!w.absent?`<button onclick="findW2(${w.id})" style="padding:4px 8px">📍 Найти</button>`:'')+(!w.absent&&!w.q.length&&!w.cur?`<button onclick="homeW(${w.id})" style="padding:4px 8px">🏠 Домой</button>`:'')+
+     (w.role==='load'&&!w.out&&!w.lic?`<button onclick="licW(${w.id});infoOpen('ppl')" style="padding:4px 8px">🪪 Права ${LIC_COST}</button>`:'')+'</div>';}).join(''):'<div style="color:#aaa">Никого</div>')+(pplF==='idle'&&L.length?`<button onclick="homeIdle()" style="width:100%;margin-top:6px;padding:8px;background:#7a4a10">🏠 Отправить домой всех без дела (${L.length})</button>`:'')+(pplF==='top'?'<p style="color:#aaa;font-size:13px">Операций за сегодня: принял поддон, отсортировал, разместил, подобрал, отпрессовал. Аутсорс в рейтинге — если что-то сделал.</p>':'')+
    (OB('jackpark').length||ejacks?`<p style="color:#aaa;font-size:13px">⚡ Электророхлей: ${ejacks}. Ездят на них только <b>штатные грузчики с правами</b>.</p>`:'');}
+function homeW(id,bulk){const w=workers.find(w=>w.id===id);if(!w||w.absent)return;if(w.q.length||w.cur||w.carry!=null||w.pallet){if(!bulk)toast(w.name+' сейчас занят',1.5);return 0;}
+  if(w.out)w.fire=true;else{w.today=payMode==='piece'?w.today:false;w.absent=true;}say(w,'Ура, домой!',1.5);if(!bulk)infoOpen('ppl');return 1;}
+function homeIdle(){let n=0;for(const w of workers.filter(w=>!w.absent&&!w.q.length&&!w.cur))n+=homeW(w.id,true)||0;toast(`🏠 Отправил домой: ${n} чел.${payMode==='piece'?'':' Аутсорсу и штату сегодня не платим'}`,3);infoOpen('ppl');}
 function findW2(id){const w=workers.find(w=>w.id===id);if(!w)return;infoClose();viewF=w.f;buildLeft();camFree=true;camX=w.px+ROAD*T;camY=w.py;w.flashU=performance.now()+4000;
   setTimeout(()=>{const sx=OX+(w.px+ROAD*T)*VS,sy=OY+w.py*VS;showWPop(w,{clientX:sx+30,clientY:sy-40});},60);}
+function upCanteen(){const cn=OB('canteen')[0];if(!cn||cn.lv>=3)return;const c=[0,15000,40000][cn.lv];if(money<c)return toast('Не хватает денег',1.5);money-=c;cn.lv++;toast('🍲 Столовая прокачана!',2);infoOpen('canteen');}
+// ===== ежедневный бонус =====
+const DAILY=[3000,5000,8000,12000,16000,22000,30000];
+function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+let dailyPend=null;
+function checkDaily(){let D={};try{D=JSON.parse(localStorage.getItem('skladmaster_daily')||'{}');}catch(e){}const today=dayKey();if(D.d===today)return;
+  const y=new Date();y.setDate(y.getDate()-1);const streak=D.d===dayKey(y)?(D.s||0)+1:1;dailyPend={s:streak,i:(streak-1)%7};
+  setTimeout(()=>{if(started&&!uiOpen())infoOpen('daily');else setTimeout(()=>{if(started)infoOpen('daily');},4000);},1500);}
+function dailyHTML(){if(!dailyPend)return '<p>Бонус уже получен сегодня</p>';const i=dailyPend.i;
+  return '<h2 style="margin-top:0">🎁 Ежедневный бонус</h2><p>Заходи каждый день — награда растёт! Пропустишь день — начнёшь сначала.</p><div style="display:flex;gap:4px;flex-wrap:wrap">'+DAILY.map((v,j)=>`<div style="flex:1;min-width:70px;text-align:center;padding:6px;border-radius:6px;background:${j<i?'#2e4a2e':j===i?'#f2c230':'#1d222c'};color:${j===i?'#000':'#eee'}"><small>день ${j+1}</small><br><b>${v/1000}к</b>${j===6?'<br>⚡':''}</div>`).join('')+
+    `</div><button onclick="takeDaily()" style="width:100%;margin-top:10px;padding:10px;background:#2e7d32;font-size:17px">Забрать ${DAILY[i]} р.${i===6?' + ⚡ электророхлю':''}</button>`;}
+function takeDaily(){if(!dailyPend)return;const i=dailyPend.i;money+=DAILY[i];if(i===6)ejacks++;try{localStorage.setItem('skladmaster_daily',JSON.stringify({d:dayKey(),s:dailyPend.s}));}catch(e){}
+  dailyPend=null;infoClose();toast(`🎁 +${DAILY[i]} р.${i===6?' и электророхля!':''} Завтра — больше!`,3);if(AC)chime();hud();}
 function officeHTML(){if(!OB('office').length)return '<h2 style="margin-top:0">🏢 Офис специалистов</h2><p>Построй офис (Стройка → 🏢 Офис специалистов, 20 000 р.), потом нанимай здесь специалистов.</p>';
   return '<h2 style="margin-top:0">🏢 Офис специалистов</h2><p style="color:#aaa">Оклад списывается каждый вечер. Можно уволить в любой момент.</p>'+Object.keys(SPEC).map(k=>{const S=SPEC[k],on=!!spec[k];
     return `<div style="background:${on?'#2e4a2e':'#1d222c'};border-radius:6px;padding:8px;margin:6px 0"><b>${S.n}</b> ${on?'✔ работает':''} <span style="float:right;color:#f2c230">${S.c} р./день</span><br><small style="color:#ccc">${S.d}</small><br>
@@ -1111,6 +1235,8 @@ function anTips(){const t=[];const act=workers.filter(w=>!w.absent&&!w.hidden&&!
   if(bn.space>=85)t.push(`Стеллажи заполнены на ${Math.round(bn.space)}% — поставь ещё ${Math.max(3,Math.ceil(OB('rack').length*0.25))} стеллажей, иначе встанет вся цепочка`);
   const nm={recv:'приёмке',sort:'сортировке',put:'размещении',pick:'подборе'};
   for(const k in nm)if(bnLevel(k,bn[k])>=2){const a=bnAdvice(k);t.push(`Завал на ${nm[k]}: ${a?a.t:'людей хватает, подожди'}`);}
+  {const rc=OB('cage').filter(c=>c.ready).length;if(rc>=2)t.push(`${rc} собранных заказов стоят в клетках — отнести в отгрузку некому (нужны грузчики/подборщики)`);}
+  if(kgtOrd>0&&!workers.some(w=>!w.absent&&['load','auto'].includes(w.role)&&kgtCan(w)))t.push('Ждут заказы КГТ — их возят только грузчики с рохлей');
   if(bnLevel('trash',bn.trash)>=2)t.push('Много мусора — поставь прессовщика, мусор замедляет всех');
   for(let f=1;f<floors;f++){const n=cargo.filter(c=>c.kind==='put'&&c.f===f).length;if(n>15)t.push(`На ${f+1} этаже у лифта ${n} коробок — нужны люди наверху (клик по человеку → Этаж работы)`);}
   const pcs=workers.reduce((a,w)=>a+(w.ops||0)*PIECE,0),exp=workers.reduce((a,w)=>a+(w.today?w.sal:0),0)+pcs+rent()+specSal();
@@ -1122,9 +1248,11 @@ function specStep(dt){
   if(spec.hr){specT.hr-=dt;if(specT.hr<=0){specT.hr=15;const act=workers.filter(w=>!w.absent&&!w.hidden&&!w.onBreak),io=idleOut();
     if(io.length>5&&io.length>act.length*0.3){for(const w of io.slice(0,2))w.fire=true;}
     else if(hrHired<6&&bn.space<88)for(const k of ['recv','sort','put','pick'])if(bnLevel(k,bn[k])>=2&&idleOut().length<2&&money>5000){hireOut(k);hrHired++;toast('🧑‍💼 HR нанял аутсорс на '+ROLES[k].n.toLowerCase(),2);break;}}}}
-function theft(){if(totalShip<200)return '';if(Math.random()>(spec.sb?0.04:0.3))return '';const full=[];for(const r of OB('rack'))r.cells.forEach((v,i)=>{if(v!==null&&!r.res[i])full.push([r,i]);});
+function theft(){if(totalShip<200)return '';if(Math.random()>(spec.sb?0.04:0.3)*(OB('safe').length?0.5:1)*(day<invUntil?0.5:1))return '';const full=[];for(const r of OB('rack'))r.cells.forEach((v,i)=>{if(v!==null&&!r.res[i])full.push([r,i]);});
   if(full.length<10)return '';const k=2+Math.floor(Math.random()*4);for(let i=0;i<k;i++){const j=Math.floor(Math.random()*full.length);const [r,c]=full.splice(j,1)[0];r.cells[c]=null;}
   money-=k*200;return ` · 🕵 Недостача: пропало ${k} коробок, штраф ${k*200} р.${spec.sb?'':' (найми СБ в офисе)'}`;}
+function loanLeft(){return loan?Math.round(loan.left*loan.pay*0.9):0;}
+function repayLoan(){if(!loan)return;const c=loanLeft();if(money<c)return toast('Не хватает денег — нужно '+c+' р.',2);money-=c;loan=null;toast('🏦 Кредит погашен досрочно! Сэкономил 10%',3);hud();}
 function takeLoan(){if(loan)return;loan={left:10,pay:22000};money+=200000;toast('🏦 Кредит 200 000 р. Возврат: 10 дней по 22 000 р.',4);hud();}
 function rushAll(){if(!OB('desk').length){toast('Нужен 🧑‍💼 Стол начальника — поставь его',3);return;}if(rushAllT>0)return;
   for(const w of workers){if(w.absent||w.hidden)continue;w.rushT=40;if(!w.out)w.mood=Math.max(0,w.mood-4);say(w,rnd(['Бегу!','Есть, шеф!','Ускоряюсь!']),1.5);}rushAllT=90;toast('📢 Все ускорились на 40 сек. (штат немного обиделся)',3);hud();}
@@ -1202,6 +1330,11 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v66','🎄 сезонные события по календарю · 🌙 ночная смена · 🔀 пересорт · 📋 инвентаризация · ⏱ нормы и KPI · 🤒 больничные и отпуска · 📦 прогноз на завтра · 🏅 сотрудник месяца · 🎨 дизайн: пол, разметка, растения · 📱 упрощённая панель на телефоне'],
+ ['v65','🎁 ежедневный бонус · 🔓 новинки открываются по уровням с подсказками · 👕 раздевалки М/Ж и форма, цвет жилетов аутсорса, залог за форму · 🔐 сейф · 🚌 служебные автобусы и опоздания · 🍲 столовая с прокачкой · 💎 склад ценного · ⭐ рейтинг у каждого'],
+ ['v64','🏦 кредит можно погасить досрочно (скидка 10%)'],
+ ['v63','📅 план на день: сколько фур и заказов, сколько людей нужно · 🚚 зона отгрузки: собранный заказ относят туда, газели забирают оттуда · 🧊 КГТ — крупная техника: своя приёмка, свои стеллажи, возят на рохле, платят ×4 · ↩ зона возвратов: проверка — годен или брак · 📥 приёмщики сами подвозят поддоны'],
+ ['v62','💵 оплата «только сдельно» — кто больше напикал, тот больше получил · 🏆 рейтинг сотрудников · 🏠 отправить домой тех, кто без дела · совет «нужны грузчики», если поддоны стоят у ворот'],
  ['v61','👥 кнопка «Люди»: фильтр по профессии, 📍 «Найти» показывает человека на складе, права грузчикам одной кнопкой'],
  ['v60','🏢 Офис специалистов: аналитик, технолог, служба безопасности, бригадир, HR · 🕵 недостачи товара (без СБ)'],
  ['v59','⬆ люди «Где нужнее» сами поднимаются на 2 этаж, когда у лифта копятся коробки · в «Узких местах» видно, сколько коробок ждут наверху'],
@@ -1248,9 +1381,17 @@ function infoOpen(kind){const b=document.getElementById('infoBox');let h='';
 <p><b>Узкие места 🚦:</b> если где-то завал — справа загорится 🔴, а внизу появится подсказка с кнопкой «исправить».</p>
 <p><b>Мусор:</b> плёнку и картон носи в пресс, иначе все работают медленнее.</p>
 <p><b>События:</b> Чёрная пятница, проверки, возвраты, срочные заказы ⚡ — успевай!</p>
+<p><b>По мере роста уровня склада открываются:</b> ворота (ур.3), раздевалки, сейф, возвраты (ур.4), этажи (ур.5), столовая (ур.6), офис (ур.7), КГТ (ур.9), склад ценного (ур.11). Про каждую новинку игра расскажет, когда она откроется.</p>
+<p><b>Пересорт:</b> иногда товар кладут не в ту ячейку — клиент получит не то, будет возврат. Помогают инвентаризация (Кабинет) и разметка (🎨 Дизайн).</p>
+<p><b>Люди:</b> у каждого дневная норма (KPI), штат болеет и уходит в отпуск — держи запас. Раз в 30 дней — сотрудник месяца 🏅.</p>
+<p><b>Отгрузка:</b> собранный заказ из клетки несут в жёлтую зону отгрузки 🚚, оттуда его забирают газели.</p>
 <p><b>Совет:</b> не знаешь, что делать — посмотри на светофор и задания дня справа.</p>`;
   else if(kind==='office')h=officeHTML();
   else if(kind==='ppl')h=pplHTML();
+  else if(kind==='canteen'){const cn=OB('canteen')[0];const up=[0,15000,40000][cn?cn.lv:0];
+    h=cn?`<h2 style="margin-top:0">🍲 Столовая ${'★'.repeat(cn.lv)}</h2><p>В середине смены люди по очереди идут обедать. Сытые работают быстрее (+${3*cn.lv}%) и становятся довольнее. Без столовой после обеда все голодные (−5%).</p><p>Обед длится ${[0,9,7,5][cn.lv]} сек. Содержание: ${400*cn.lv} р./день.</p>`+(cn.lv<3?`<button onclick="upCanteen()" style="width:100%;padding:8px;background:#2e7d32">⬆ Прокачать до ${'★'.repeat(cn.lv+1)} — ${up} р.<br><small>${['','горячие обеды','шведский стол и кофе-машина'][cn.lv]}</small></button>`:'<p style="color:#7dff7d">✔ Максимальный уровень</p>'):'<p>Построй столовую</p>';}
+  else if(kind==='daily')h=dailyHTML();
+  else if(kind.startsWith('feat:')){const f=FEAT[kind.slice(5)];h=`<h2 style="margin-top:0">🔓 Открыто: ${f[0]}</h2><p style="font-size:16px">${f[1]}</p>`;}
   else if(kind==='support')h=`<h2 style="margin-top:0">💛 Поддержать разработчика</h2>
 <p>Игру делает один человек по вечерам. Если она тебе понравилась — можно поддержать любой суммой. Спасибо! 🙏</p>
 <p>Карта (Озон Банк):<br><b style="font-size:20px;letter-spacing:1px" id="cardNo">2204 3203 0031 1356</b> <button onclick="copyTxt('2204320300311356',this)">📋 Скопировать</button></p>
@@ -1273,21 +1414,47 @@ function copyTxt(t,btn){const ta=document.createElement('textarea');ta.value=t;d
   if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{});btn.textContent='✔ Скопировано';}
 function startDay(){
   for(const w of workers){
-    const pres=w.out?(isEasy()||Math.random()>0.15):onShift(w,day);w.today=pres;
+    if(!w.out){if(!w.vacNext)w.vacNext=day+20+Math.floor(Math.random()*20);if(w.sickD>0)w.sickD--;else if(w.vacD>0)w.vacD--;else if(day>=w.vacNext){w.vacD=4;w.vacNext=day+35;}else if(Math.random()<(isEasy()?0.01:0.025))w.sickD=1+Math.floor(Math.random()*2);}
+    const pres=w.out?(isEasy()||Math.random()>(buses?0.05:0.15)):(onShift(w,day)&&!w.sickD&&!w.vacD);w.today=pres;w.dressed=!hasLock();w.noLock=false;w.fed=false;w.lunch=false;w.lateT=0;
     if(pres){w.absent=false;w.absPend=false;}
     else if(!w.cur&&!w.q.length){w.absent=true;}else w.absPend=true;
   }
+  {const pr=workers.filter(w=>w.today&&!w.absent);let cap=buses*25,late=0;for(const w of pr){if(cap>0){cap--;continue;}if(Math.random()<0.25){w.lateT=10+Math.random()*30;w.absent=true;late++;}}
+   busShowT=buses?6:0;if(late)setTimeout(()=>toast(`⏰ Опаздывают ${late} чел. — им не хватило служебного автобуса${buses?'':' (автобусов нет — найми в Кабинете)'}`,4),7000);}
+  {const sk=workers.filter(w=>!w.out&&w.sickD>0).map(w=>w.name),vc=workers.filter(w=>!w.out&&w.vacD>0).map(w=>w.name);if(sk.length||vc.length)setTimeout(()=>toast((sk.length?`🤒 На больничном: ${sk.join(', ')}. `:'')+(vc.length?`🏖 В отпуске: ${vc.join(', ')}. `:'')+'Подстрахуйся аутсорсом',5),8500);}
   const outAbs=workers.filter(w=>w.out&&!w.today).length;
   if(outAbs)setTimeout(()=>toast(`Аутсорс: не вышли на смену ${outAbs} чел.`,3),5200);
   genCands();genTasks();
-  cancelToday=0;evt=null;
-  if(day>=3&&Math.random()<(clsI>=2?0.6:0.4)){const ks=Object.keys(EVT).filter(k=>k!=='rush'||clsI>=1);const k=ks[Math.floor(Math.random()*ks.length)];evt={k};
-    setTimeout(()=>toast(`${EVT[k].n}! ${EVT[k].d}`,6),5600);}
+  cancelToday=0;evt=null;setTimeout(()=>{if(!started)return;const p=dayPlan();toast(`📅 План на день ${day}: 🚚 ~${p.tr} фур, 🛒 ~${p.ord} заказов → нужно ~${p.tot} чел., вышло ${p.have}`,6);},6400);
+  evt=nextEvt;nextEvt=rollEvt(day+1);if(evt){const k=evt.k;setTimeout(()=>toast(`${EVT[k].n}! ${EVT[k].d}`,6),5600);}
+  if(nextEvt&&nextEvt.k==='black')setTimeout(()=>toast('📦 Поставщик предупреждает: ЗАВТРА Чёрная пятница — фур и заказов в 2 раза больше. Готовь людей!',6),12000);
+  if(SEAS&&day%5===1)setTimeout(()=>toast(`${SEAS.n}: ${SEAS.d}`,5),9000);
 }
+function truckIv(){return 36/pvz*(upg.truck?0.75:1)/(evt&&evt.k==='black'?1.8:1)/(1+0.35*(gates.length-1))/(SEAS?SEAS.t:1)/(nightOn?1.4:1);}
+function dayPlan(){const tr=Math.round(DAYLEN/truckIv()),pal=tr*2,bx=pal*6,ord=Math.round(DAYLEN/(7/(pvz*ordMul()))),it=ord*2;
+  const need={recv:Math.ceil(pal/20),load:Math.ceil(pal/18),sort:Math.ceil(bx/36),put:Math.ceil(bx/32),pick:Math.ceil(it/26)};
+  const tot=Object.values(need).reduce((a,v)=>a+v,0),have=workers.filter(w=>w.today&&!w.quit&&!w.fire).length;
+  return {tr,pal,bx,ord,it,need,tot,have};}
+function planHTML(){const p=dayPlan(),N=p.need;
+  const sk=workers.filter(w=>!w.out&&w.sickD>0).length,vc=workers.filter(w=>!w.out&&w.vacD>0).length;
+  return (SEAS?`<b style="color:#f2c230">${SEAS.n}</b> <small>${SEAS.d}</small><br>`:'')+(nightOn?'🌙 Работаем и ночью<br>':'')+`🚚 Фур: <b>~${p.tr}</b> (${p.pal} поддонов, ~${p.bx} коробок) · 🛒 заказов ~${p.ord}${evt&&evt.k==='black'?' <b style="color:#f55">🔥 Чёрная пятница!</b>':''}<br>
+  <small>Нужно примерно: приёмка ${N.recv} · грузчики ${N.load} · сортировка ${N.sort} · размещение ${N.put} · подбор ${N.pick}</small><br>
+  Итого нужно ~<b>${p.tot}</b> чел., вышло <b style="color:${p.have<p.tot*0.8?'#f55':p.have>p.tot*1.4?'#f2c230':'#7dff7d'}">${p.have}</b>${p.have>p.tot*1.4?' — лишние, отпусти часть':p.have<p.tot*0.8?' — не хватает, найми аутсорс':' — нормально'}<br>${sk||vc?`<small>🤒 болеют ${sk} · 🏖 в отпуске ${vc}</small><br>`:''}<small>📦 Завтра: ${nextEvt?`<b style="color:#f2c230">${EVT[nextEvt.k].n}</b>`:'обычный день'}</small><br><small style="color:#888">«Где нужнее» закрывают любую работу. Оценка примерная — смотри на 🚦 узкие места.</small>`;}
 function rent(){return 400+vansOwn*600+expLvl*600+expD*600+(gates.length-1)*500+(floors-1)*2000+(pvz-1)*800+OB('rack').length*20+OB('cage').length*30;}
 function endDay(){
-  let sal=0;for(const w of workers){if(w.today)sal+=w.sal;sal+=(w.ops||0)*PIECE;w.ops=0;}
-  const rn=rent(),ss=specSal();money-=sal+rn+ss;const thf=theft();hrHired=0;if(loan){money-=loan.pay;loan.left--;if(loan.left<=0){loan=null;setTimeout(()=>toast('🏦 Кредит погашен!',3),1500);}}
+  let sal=0;for(const w of workers){const e=payOf(w);sal+=e;w.earnY=e;w.opsY=w.ops||0;if(w.today&&!w.absent)w.rt=w.rt?w.rt*0.6+(w.ops||0)*0.4:(w.ops||0);w.ops=0;}
+  kpiTxt='';if(kpiOn){let ok=0,all=0,bon=0,low=0;for(const w of workers){if(!w.today||w.absent&&!w.opsY)continue;all++;const nm=normOf(w);w.normY=nm;
+      if(w.opsY>=nm){ok++;if(!w.out){bon+=200;w.mood=Math.min(100,w.mood+4);}}else if(w.opsY<nm*0.6){low++;w.mood=Math.max(0,w.mood-4);}}
+    money-=bon;if(all)kpiTxt=` · 📊 Норму выполнили ${ok}/${all}${bon?`, премии ${bon} р.`:''}${low?`, беседа с ${low}`:''}`;}
+  for(const w of workers)w.mOps=(w.mOps||0)+(w.opsY||0);
+  let eomTxt='';if(day%30===0&&workers.length){const best=workers.filter(w=>!w.out).sort((a,b)=>(b.mOps||0)-(a.mOps||0))[0]||workers.slice().sort((a,b)=>(b.mOps||0)-(a.mOps||0))[0];
+    workers.forEach(w=>{w.eom=false;w.mOps=0;if(!w.out)w.mood=Math.min(100,w.mood+5);});if(best){best.eom=true;money-=5000;eomTxt=` · 🏅 Сотрудник месяца: ${best.name}! Премия 5000 р.`;}}
+  let depRet=0;for(const w of workers)if(w.out&&w.dep&&w.today){w.depN=(w.depN||0)+1;if(w.depN>=8){money-=w.dep;depRet+=w.dep;w.dep=0;}}
+  {const pl=Math.min(10,OB('plant').length);if(pl)for(const w of workers)if(!w.out)w.mood=Math.min(100,w.mood+pl*0.4);}
+  {const cn=OB('canteen');for(const w of workers)if(cn.length&&w.fed)w.mood=Math.min(100,w.mood+2*cn[0].lv);}
+  const rn=rent(),ss=specSal()+busCost()+canteenCost();money-=sal+rn+ss;
+  let valTxt='';if(OB('vault').some(o=>o.n)&&Math.random()<(spec.sb?0.03:0.2)*(OB('safe').length?0.6:1)){const v=OB('vault').find(o=>o.n);v.n--;money-=3000;valTxt=' · 💎 Пропал ценный товар! Штраф 3000 р.'+(spec.sb?'':' (найми СБ)');}
+  if(depRet)setTimeout(()=>toast(`👕 Вернули залог за форму аутсорсу: −${depRet} р.`,3),2500);const thf=theft();hrHired=0;if(loan){money-=loan.pay;loan.left--;if(loan.left<=0){loan=null;setTimeout(()=>toast('🏦 Кредит погашен!',3),1500);}}
   let audTxt='';if(evt&&evt.k==='audit'){const tr=objs.reduce((a,o)=>a+(o.trash||0),0);if(tr>5||cancelToday>0){const fine=3000*(clsI+1);money-=fine;addRating(-0.2);audTxt=` · 🕵 Проверка: штраф ${fine} р. (мусор ${tr}, отмен ${cancelToday})`;}else{const b=3000*(clsI+1);money+=b;addRating(0.1);audTxt=` · 🕵 Проверка пройдена! Премия ${b} р.`;st.audit++;}}
   if(evt&&evt.k==='black')st.black++;if(rating>=4.95)st.r5++;st.noCancel=cancelToday===0?st.noCancel+1:0;
   hist.push({d:day,inc:dayInc,ship:dayShip,m:Math.floor(money),net:dayInc-sal-rn});if(hist.length>15)hist.shift();
@@ -1295,9 +1462,9 @@ function endDay(){
   if(netInc){money+=netInc;}
   report=`День ${day}: доход ${dayInc} р. − зарплаты ${sal} р. − аренда ${rn} р. = ${dayInc-sal-rn} р. · Отгружено товаров: ${dayShip} · ⭐ ${rating.toFixed(2)}`+audTxt+(netInc?` · 🏙 другие склады: ${netInc>0?'+':''}${netInc} р.`:'');
   let q=[];
-  for(const w of workers)if(!w.out){const r=w.sal/w.want;w.mood+=(Math.min(85,60+(r-1)*80)-w.mood)*0.3;const ch=(isEasy()?0:(r<0.9?(0.9-r)*1.5:0)+(w.sched==='7/0'?0.06:0)+(w.mood<30?0.15:0))*(spec.hr?0.3:1);if(Math.random()<ch){w.quit=true;q.push(w.name);}}
+  for(const w of workers)if(!w.out){const r=payMode==='piece'?Math.max(0.7,(w.earnY||0)/w.want):w.sal/w.want;w.mood+=(Math.min(85,60+(r-1)*80)-w.mood)*0.3;const ch=(isEasy()?0:(r<0.9?(0.9-r)*1.5:0)+(w.sched==='7/0'?0.06:0)+(w.mood<30?0.15:0))*(spec.hr?0.3:1);if(Math.random()<ch){w.quit=true;q.push(w.name);}}
   day++;dayInc=0;dayShip=0;st.fireDay=0;
-  toast(report+thf+(ss?` · специалисты −${ss} р.`:'')+(q.length?` · Уволились: ${q.join(', ')}`:''),thf?7:5);
+  toast(report+kpiTxt+eomTxt+thf+valTxt+(ss?` · специалисты −${ss} р.`:'')+(q.length?` · Уволились: ${q.join(', ')}`:''),thf?7:5);
   startDay();save();
 }
 const expCost=()=>8000*(expLvl+1), pvzCost=()=>Math.round(20000*Math.pow(pvz,1.3)/1000)*1000, floorCost=()=>25000*floors;
@@ -1305,11 +1472,19 @@ const expCost=()=>8000*(expLvl+1), pvzCost=()=>Math.round(20000*Math.pow(pvz,1.3
 // ================= ШАГ ИГРЫ =================
 function step(dt){
   gT+=dt;if(dirtyMul()<1)addRating(-0.001*dt);
-  if(evt&&evt.k==='returns'){retT+=dt;if(retT>25){retT=0;if(OB('bfloor').length<12)for(let i=0;i<2+Math.floor(Math.random()*2);i++){const sp=freeSpot(3,10);if(sp){const b=addObj('bfloor',0,sp[0],sp[1]);b.t=Math.floor(Math.random()*3);}}toast('↩ Привезли возвраты из ПВЗ — разложи их',2);}}
-  if(rushAllT>0)rushAllT-=dt;cargoStep(dt);specStep(dt);
+  {const rz=OW('retz');if(rz.length){retT+=dt;if(retT>(evt&&evt.k==='returns'?12:60)&&totalShip>30){retT=0;const z=rz[Math.floor(Math.random()*rz.length)];if(z.box.length<10){const k=1+Math.floor(Math.random()*3);for(let i=0;i<k;i++)z.box.push(Math.floor(Math.random()*3));float(z.x*T+16,z.y*T,'↩ +'+k+' возврат','#9cf');}}}}
+  if(OB('kgtin').length){kgtT+=dt;if(kgtT>Math.max(25,70/pvz)){kgtT=0;const z=nearest(OW('kgtin').filter(o=>o.n<4),{x:0,y:0,f:0});if(z){const k=1+Math.floor(Math.random()*2);z.n=Math.min(4,z.n+k);float(z.x*T+16,z.y*T,'🚚 +'+k+' КГТ','#fff');}}
+    kgtOT+=dt;if(kgtOT>Math.max(20,60/pvz)){kgtOT=0;const stock=OB('kgtrack').reduce((a,o)=>a+o.k,0);if(stock>kgtOrd)kgtOrd++;}}
+  if(evt&&evt.k==='returns'&&!OW('retz').length){retT+=dt;if(retT>25){retT=0;if(OB('bfloor').length<12)for(let i=0;i<2+Math.floor(Math.random()*2);i++){const sp=freeSpot(3,10);if(sp){const b=addObj('bfloor',0,sp[0],sp[1]);b.t=Math.floor(Math.random()*3);}}toast('↩ Привезли возвраты из ПВЗ — разложи их',2);}}
+  if(invT>0){invT-=dt;if(invT<=0){let m=0;for(const r of OB('rack'))if(r.mis){m+=Object.keys(r.mis).length;r.mis={};}invUntil=day+7;const back=Math.floor(Math.random()*3)*500;money+=back;toast(`📋 Инвентаризация готова: исправлено пересорта ${m} шт.${back?`, нашли «потерянное» на ${back} р.`:''}. Недостач меньше 7 дней`,6);}}
+  if(rushAllT>0)rushAllT-=dt;cargoStep(dt);specStep(dt);if(busShowT>0)busShowT-=dt;
+  for(const w of workers)if(w.lateT>0){w.lateT-=dt;if(w.lateT<=0){w.absent=false;placeAt(w,0,DOOR.x,DOOR.y);say(w,'Извините, опоздал… автобус 😅',2.5);}}
+  if(OW('canteen').length&&dayT>DAYLEN*0.4&&dayT<DAYLEN*0.75){for(const w of workers)if(!w.absent&&!w.fed&&!w.lunch&&!w.breakPend&&!w.onBreak&&Math.random()<dt*0.08){const cn=OB('canteen')[0];w.lunch=true;w.breakPend=true;w.breakT=[0,9,7,5][cn.lv]||9;}}
+  if(OB('vault').length){valT+=dt;if(valT>Math.max(30,80/pvz)){valT=0;const v=OW('vault').find(o=>o.n<6);if(v){v.n++;float(v.x*T+16,v.y*T,'💎 +1 ценный','#ffe680');}
+    if(OB('vault').reduce((a,o)=>a+o.n,0)>valOrd&&Math.random()<0.6)valOrd++;}}
   dayT+=dt;if(dayT>=DAYLEN){dayT-=DAYLEN;endDay();}
   truckT+=dt;
-  {const iv=36/pvz*(upg.truck?0.75:1)/(evt&&evt.k==='black'?1.8:1)/(1+0.35*(gates.length-1));
+  {const iv=truckIv();
    if(truckT>=iv&&bn.space<92){const fr=gates.filter(g=>(!g.tr||g.tr.st==='away')&&gateDocks(g).some(s=>!s.p));if(fr.length){const g=fr[Math.floor(Math.random()*fr.length)];g.tr={st:'in',t:0,y:-200,k:0};truckT=0;}}
    for(const g of gates){const tr=g.tr;if(!tr||tr.st==='away')continue;const docks=gateDocks(g);
      if(tr.st==='in'){tr.t+=dt;tr.y=-200+200*Math.min(1,tr.t/1.5);if(tr.t>=1.5){tr.st='unl';tr.t=0;OB('stack').forEach(s=>s.n=0);}}
@@ -1320,13 +1495,14 @@ function step(dt){
     for(let k=0;k<n;k++){const tot=fr[0]+fr[1]+fr[2];if(tot<=0)break;let r=Math.random()*tot,t=0;for(;t<3;t++){r-=fr[t];if(r<0)break;}t=Math.min(t,2);fr[t]--;items.push({t,st:'w'});}
     if(items.length){const ex=newOrderExp();pending.push({items,t0:gT,exp:ex,dl:ex?gT+95+15*items.length:0});}}}
   for(const cg of OB('cage')){
+    if(cg.ready&&!cg.o)cg.ready=false;
     if(!cg.o&&pending.length&&!cg.off){const ei=pending.findIndex(o=>o.exp);cg.o=ei>=0?pending.splice(ei,1)[0]:pending.shift();cg.done=0;cg.starve=0;}
     if(cg.o&&cg.o.items.some(i=>i.st==='w'&&availCount(i.t)===0)){cg.starve=(cg.starve||0)+dt;
       if(cg.starve>40&&!cg.o.items.some(i=>i.st==='r')){const back=cg.o.items.filter(i=>i.st==='d');
         for(const it of back){const sp=freeSpot(cg.x,cg.y);if(sp){const b=addObj('bfloor',cg.f,sp[0],sp[1]);b.t=it.t;}}
         cg.o=null;cg.starve=0;cancelN++;cancelToday++;rateOrder(1,0.15);toast('❌ Клиент отменил заказ: товара нет на складе'+(back.length?' · собранные коробки выложены у клетки':''),4);continue;}}
     else if(cg.o)cg.starve=0;
-    if(cg.o&&cg.o.items.every(i=>i.st==='d')){cg.done+=dt;if(cg.done>1.2){const oo=cg.o;outQ.push({n:oo.items.length,exp:oo.exp,dl:oo.dl,t0:oo.t0});float(cg.x*T,cg.y*T,'📦 → 🚐','#9cf');cg.o=null;}}
+    if(cg.o&&cg.o.items.every(i=>i.st==='d')){cg.done+=dt;if(cg.done>1.2){const oo=cg.o;if(OB('ship').length){if(!cg.ready){cg.ready=true;float(cg.x*T,cg.y*T,'✔ собран — в отгрузку!','#9cf',cg.f);}}else{outQ.push({mis:oo.items.filter(i=>i.mis).length,n:oo.items.length,exp:oo.exp,dl:oo.dl,t0:oo.t0});float(cg.x*T,cg.y*T,'📦 → 🚐','#9cf');cg.o=null;}}}
   }
   if(van>0)van-=dt;if(boostT>0)boostT-=dt;
   vanStep(dt);
@@ -1334,23 +1510,23 @@ function step(dt){
   for(const o of objs)if(o.unload&&!hasGoods(o)&&!(o.p&&o.p.res)){o.unload=false;toast('✔ '+(ONAME[o.type]||'Объект')+(o.type==='recv'?' №'+recvNo(o):'')+' разгружен',2.5);}
   upd(player,dt);
   jackQ=jackQ.filter(id=>{const x=workers.find(w=>w.id===id);const keep=x&&!x.dead&&!x.absent&&!x.jack&&(x.role==='load'||x.role==='auto');if(x&&!keep)x.jackWait=false;return keep;});
-  for(const w of workers){upd(w,dt);if(w.bubble>0)w.bubble-=dt;if(w.sayT>0)w.sayT-=dt;if(w.rushT>0)w.rushT-=dt;if(w.happyT>0)w.happyT-=dt;if(w.onBreak){w.breakT-=dt;if(w.breakT<=0){w.onBreak=false;w.hidden=false;w.why=null;placeAt(w,0,DOOR.x,DOOR.y);say(w,'Я вернулся! 💪',2.5);}}}
+  for(const w of workers){upd(w,dt);if(w.bubble>0)w.bubble-=dt;if(w.sayT>0)w.sayT-=dt;if(w.rushT>0)w.rushT-=dt;if(w.happyT>0)w.happyT-=dt;if(w.onBreak){w.breakT-=dt;if(w.breakT<=0){w.onBreak=false;w.hidden=false;w.why=null;const b=w.brkAt&&objs.includes(w.brkAt)?freeNb(0,w.brkAt.x,w.brkAt.y):null;if(b)placeAt(w,0,b[0],b[1]);else placeAt(w,0,DOOR.x,DOOR.y);if(w.lunch){w.lunch=false;w.fed=true;say(w,'Вкусно! Сытый — работаю быстрее',2);}else say(w,'Я вернулся! 💪',2.5);}}}
   if(workers.some(w=>w.dead))workers=workers.filter(w=>!w.dead);
   for(const f of floats)f.t+=dt;floats=floats.filter(f=>f.t<1.6);
 }
 
 // ================= СОХРАНЕНИЕ =================
 function serialize(){
-  return {v:3,spec,loan,ach,st,vansOwn,ejacks,outQ:[...outQ,...vans.flatMap(v=>v.load)],GH,expD,gates:gates.map(g=>({y:g.y,side:g.side||'L'})),gT,rating,clsI,evt,cancelToday,upg,goalI,playT,cancelN,tasksDone,hist,gameMode,ds,tasks,xp,lvl,bestShip,tutStep,money,day,dayT,pvz,expLvl,GW,floors,dayInc,dayShip,totalShip,report,cbCount,lift,lifts:lifts.map(l=>({x:l.x,y:l.y})),stairs:stairs.map(l=>({x:l.x,y:l.y})),
+  return {v:3,nightOn,invUntil,nextEvt,kpiOn,floorCol,marking,vestCol,outUni,buses,valOrd,kgtOrd,payMode,spec,loan,ach,st,vansOwn,ejacks,outQ:[...outQ,...vans.flatMap(v=>v.load)],GH,expD,gates:gates.map(g=>({y:g.y,side:g.side||'L'})),gT,rating,clsI,evt,cancelToday,upg,goalI,playT,cancelN,tasksDone,hist,gameMode,ds,tasks,xp,lvl,bestShip,tutStep,money,day,dayT,pvz,expLvl,GW,floors,dayInc,dayShip,totalShip,report,cbCount,lift,lifts:lifts.map(l=>({x:l.x,y:l.y})),stairs:stairs.map(l=>({x:l.x,y:l.y})),
     objs:objs.map(o=>{const c={type:o.type,f:o.f,x:o.x,y:o.y,off:!!o.off,unload:!!o.unload};
       if(o.type==='dock'||o.type==='recv'||o.type==='pfloor')c.p=o.p&&!o.p.res?{boxes:[...o.p.boxes],wrap:o.p.wrap,acc:o.p.acc}:(o.p?{boxes:[...o.p.boxes],wrap:o.p.wrap,acc:o.p.acc}:null);
       if(o.trash!=null)c.trash=o.trash;
       if(o.type==='table')c.n=[...o.n];
-      if(o.type==='rack')c.cells=[...o.cells];
+      if(o.type==='rack'){c.cells=[...o.cells];if(o.mis&&Object.keys(o.mis).length)c.mis=o.mis;}
       if(o.type==='cage')c.o=o.o?{items:o.o.items.map(i=>({t:i.t,st:i.st==='d'?'d':'w'}))}:null;
       if(o.type==='press'){c.n=o.n;c.bales=o.bales;}
-      if(o.type==='stack'||o.type==='jackpark')c.n=o.n;if(o.type==='bfloor')c.t=o.t;return c;}),
-    workers:workers.filter(w=>!w.quit&&!w.fire).map(w=>({role:w.role,out:w.out,name:w.name,skill:w.skill,want:w.want,sal:w.sal,sched:w.sched,off:w.off,mood:w.mood,jobs:w.jobs||0,lic:!!w.lic,jack:!!w.jack,post:w.post?objs.findIndex(o=>o.id===w.post):-1,f:w.f,tx:w.tx,ty:w.ty,absent:w.absent||w.absPend,today:w.today,fl:w.fl||0,flFix:!!w.flFix})),
+      if(o.type==='stack'||o.type==='jackpark'||o.type==='kgtin')c.n=o.n;if(o.type==='kgtrack')c.k=o.k;if(o.type==='canteen')c.lv=o.lv;if(o.type==='vault')c.n=o.n;if(o.type==='retz')c.box=[...o.box];if(o.type==='bfloor')c.t=o.t;return c;}),
+    workers:workers.filter(w=>!w.quit&&!w.fire).map(w=>({role:w.role,out:w.out,name:w.name,skill:w.skill,want:w.want,sal:w.sal,sched:w.sched,off:w.off,mood:w.mood,jobs:w.jobs||0,lic:!!w.lic,jack:!!w.jack,post:w.post?objs.findIndex(o=>o.id===w.post):-1,f:w.f,tx:w.tx,ty:w.ty,absent:w.absent||w.absPend,today:w.today,fl:w.fl||0,flFix:!!w.flFix,vest:w.vest||null,sickD:w.sickD||0,vacD:w.vacD||0,vacNext:w.vacNext||0,mOps:w.mOps||0,eom:!!w.eom,dep:w.dep||0,depN:w.depN||0,rt:w.rt||0,dressed:true})),
     player:{f:player.f,tx:player.tx,ty:player.ty,jack:!!player.jack,carry:typeof player.carry==='number'?player.carry:null},jv:1,
     pending:pending.map(o=>({items:o.items.map(i=>({t:i.t,st:'w'}))})),cands};
 }
@@ -1366,15 +1542,17 @@ function resetState(){
 }
 function portraitHint(){if(isMob&&innerHeight>innerWidth)toast('📱 Поверни телефон горизонтально — так удобнее',4);}
 function newGame(mode){
-  resetState();spec={};loan=null;ach={};st={pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0};vansOwn=0;vans=[];outQ=[];ejacks=0;gameMode=mode||'easy';upg={};gT=0;rating=4;clsI=0;evt=null;cancelToday=0;retT=0;goalI=0;playT=0;cancelN=0;tasksDone=0;hist=[];xp=0;lvl=1;bestShip=0;
+  resetState();nightOn=false;invT=0;invUntil=0;nextEvt=null;kpiOn=true;floorCol=null;marking=false;vestCol='#3fbf5a';outUni=false;buses=0;valOrd=0;kgtOrd=0;payMode='piece';spec={};loan=null;ach={};st={pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0};vansOwn=0;vans=[];outQ=[];ejacks=0;gameMode=mode||'easy';upg={};gT=0;rating=4;clsI=0;evt=null;cancelToday=0;retT=0;goalI=0;playT=0;cancelN=0;tasksDone=0;hist=[];xp=0;lvl=1;bestShip=0;
   tutStep=0;tutMoved=false;money=isEasy()?20000:15000;day=1;dayT=0;pvz=1;expLvl=0;GW=24;floors=1;dayInc=0;dayShip=0;totalShip=0;cbCount=0;report='Пока нет данных';
   GH=15;expD=0;gates=[{y:3,side:'L'}];DOOR.y=14;
   [2,3,4].forEach(y=>addObj('dock',0,0,y));
   player=mkPerson({isPlayer:true,name:'Я'});placeAt(player,0,4,7);
   if(isEasy()){[[3,3],[3,5]].forEach(([x,y])=>addObj('recv',0,x,y));addObj('table',0,6,4);[2,3,4,5].forEach(y=>addObj('rack',0,9,y));addObj('cage',0,3,11);addObj('stack',0,3,8);}
-  startDay();started=true;save();
+  addShipDefault();
+  startDay();started=true;save();settings.featSeen={};for(const k in FEAT)if(unlocked(k))settings.featSeen[k]=1;saveSettings();checkDaily();
   
 }
+function addShipDefault(){if(OB('ship').length)return false;for(const p of [[1,10],[1,12]]){const sp=freeSpot(p[0],p[1]);if(sp)addObj('ship',0,sp[0],sp[1]);}return true;}
 function load(){
   let s;try{s=JSON.parse(getSaveRaw());}catch(e){return false;}if(!s)return false;
   nets=s.nets||[{name:'Главный склад',st:null}];netCur=s.netCur||0;
@@ -1385,7 +1563,7 @@ function loadState(s){
   tutStep=s.tutStep||0;tutMoved=true;gameMode=s.gameMode||'real';upg=s.upg||{};gT=s.gT||0;rating=s.rating!=null?s.rating:4;clsI=s.clsI||0;evt=s.evt||null;cancelToday=s.cancelToday||0;goalI=s.goalI||0;playT=s.playT||0;cancelN=s.cancelN||0;tasksDone=s.tasksDone||0;hist=s.hist||[];xp=s.xp||0;lvl=s.lvl||1;bestShip=s.bestShip||0;
   GH=s.GH||15;expD=s.expD||0;gates=(s.gates||[{y:3}]).map(g=>({y:g.y,side:g.side||'L'}));DOOR.y=GH-1;
   ({money,day,dayT,pvz,expLvl,GW,floors,dayInc,dayShip,totalShip,report,cbCount,lift}=s);lifts=s.lifts||(lift?[{x:lift.x,y:lift.y}]:[]);stairs=s.stairs||[];lift=null;cargo=[];
-  for(const c of s.objs){if(c.type==='pfloor'&&!c.p)continue;const o=addObj(c.type,c.f,c.x,c.y);o.off=!!c.off;o.unload=!!c.unload;
+  for(const c of s.objs){if(c.type==='pfloor'&&!c.p)continue;const o=addObj(c.type,c.f,c.x,c.y);o.off=!!c.off;o.unload=!!c.unload;if(c.type==='kgtrack')o.k=c.k||0;if(c.type==='retz')o.box=c.box||[];if(c.type==='kgtin')o.n=c.n||0;if(c.type==='rack'&&c.mis)o.mis=c.mis;if(c.type==='canteen')o.lv=c.lv||1;if(c.type==='vault')o.n=c.n||0;
     if(c.p!==undefined)o.p=c.p?Object.assign({res:null},c.p):null;
     if(c.trash!=null)o.trash=c.trash;
     if(c.type==='table')o.n=c.n;
@@ -1398,7 +1576,11 @@ function loadState(s){
   if(!s.jv){player.jack=true;workers.forEach(w=>{if(w.role==='load')w.jack=true;});}if(!walk(player.f,player.tx,player.ty))placeAt(player,0,1,3);
   viewF=player.f;pending=s.pending||[];cands=s.cands||[];if(!cands.length)genCands();
   ds=s.ds||{ship:0,pallets:0,bales:0,orders:0};tasks=s.tasks||[];if(!tasks.length)genTasks();
-  spec=s.spec||{};loan=s.loan||null;ach=s.ach||{};st=Object.assign({pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0},s.st||{});vansOwn=s.vansOwn||0;vans=[];outQ=s.outQ||[];ejacks=s.ejacks||0;
+  nightOn=!!s.nightOn;invUntil=s.invUntil||0;nextEvt=s.nextEvt||null;kpiOn=s.kpiOn!==false;floorCol=s.floorCol||null;marking=!!s.marking;invT=0;vestCol=s.vestCol||'#3fbf5a';outUni=!!s.outUni;buses=s.buses||0;valOrd=s.valOrd||0;kgtOrd=s.kgtOrd||0;payMode=s.payMode||'fix';spec=s.spec||{};loan=s.loan||null;ach=s.ach||{};st=Object.assign({pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0},s.st||{});vansOwn=s.vansOwn||0;vans=[];outQ=s.outQ||[];ejacks=s.ejacks||0;
+  outQ.forEach(o=>delete o.sh);OB('ship').forEach(o=>{o.n=0;o.inc=0;});
+  if(SEAS)setTimeout(()=>toast(`${SEAS.n}: ${SEAS.d}`,5),2500);
+  settings.featSeen=settings.featSeen||{};for(const k in FEAT)if(unlocked(k))settings.featSeen[k]=1;setTimeout(checkDaily,500);
+  if(addShipDefault())setTimeout(()=>toast('🚚 Новое: зона отгрузки! Собранные заказы теперь относят туда, а газели забирают оттуда',6),3000);
   started=true;resize();return true;
 }
 addEventListener('beforeunload',save);
@@ -1456,6 +1638,10 @@ function canDel(o){
     case 'jackbox':return 'Распакуй рохлю (E)';
     case 'jackpark':return (o.n||o.res||o.inc)?'На стоянке есть рохли — сначала забери их':'';
     case 'recv':return (o.p||o.r||o.trash||o.tres)?'Место занято':'';
+    case 'ship':return (o.n||o.inc)?'Тут лежат заказы — подожди газель':'';
+    case 'retz':return (o.box.length||o.res||o.trash)?'Тут лежат возвраты':'';
+    case 'kgtin':return (o.n||o.res)?'Тут лежит КГТ':'';
+    case 'kgtrack':return (o.k||o.inc||o.out)?'На стеллаже КГТ':'';
     case 'table':return (o.n.some(v=>v)||o.inc.some(v=>v)||o.out.some(v=>v)||o.trash||o.tres)?'На столе есть товар или мусор':'';
     case 'rack':return (o.cells.some(v=>v!==null)||o.res.some(v=>v))?'Стеллаж не пустой':'';
     case 'cage':return o.o?'В клетке собирается заказ':'';
@@ -1550,6 +1736,9 @@ function rr(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h);}
 function ln(x1,y1,x2,y2,c,w){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
 function txt(s,x,y,c,sz,al){ctx.fillStyle=c;ctx.font='bold '+Math.max(sz||10,11)+'px Segoe UI,Arial';ctx.textAlign=al||'left';ctx.fillText(s,x,y);}
 function boxS(x,y,t,w,h){w=w||9;h=h||8;
+  if(t==='ord'){rr(x-8,y-7,16,13,'#000');rr(x-7,y-6,14,11,'#b98a50');rr(x-7,y-1,14,2,'#e8d6a0');rr(x-1,y-6,2,11,'#e8d6a0');return;}
+  if(t==='val'){rr(x-5,y-5,10,9,'#000');rr(x-4,y-4,8,7,'#f2c230');rr(x-1,y-4,2,7,'#fff8');return;}
+  if(t==='kgt'){rr(x-9,y-14,18,22,'#000');rr(x-8,y-13,16,20,'#e8eaee');rr(x-8,y-6,16,1,'#aab');rr(x+4,y-11,2,4,'#889');return;}
   if(t==='trash'){ctx.fillStyle='#ddd';ctx.beginPath();ctx.ellipse(x,y,6,5,0,0,7);ctx.fill();ctx.fillStyle='#b8864e';ctx.fillRect(x-4,y-2,5,4);return;}
   rr(x-w/2,y-h/2,w,h,'#000');rr(x-w/2+1,y-h/2+1,w-2,h-2,'#c99a5b');rr(x-w/2+1,y-h/2+1,w-2,2,TYPES[t]);rr(x-0.5,y-h/2+1,1,h-2,'#a07040');}
 function drawTrash(x,y,n,col){for(let i=0;i<Math.min(n,8);i++){ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(x+(i*5)%12,y-((i/3)|0)*3,4,3,i,0,7);ctx.fill();ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=0.5;ctx.stroke();}}
@@ -1566,7 +1755,8 @@ function drawJack(p,ej){
 }
 function drawPerson(w){
   const x=w.px,y=w.py+10,u=w.u,pose=w.pose,sw=w.moving?Math.sin(w.walkT*12):0;
-  const shirt=w.isPlayer?'#f2f2f2':w.out?'#5c5c5c':'#2f5fa8',arm2=w.isPlayer?'#cfcfcf':w.out?'#4a4a4a':'#24508f',pants='#262633',skin='#f0c8a0';
+  const civ=hasLock()&&(!w.dressed||w.noLock)&&!w.isPlayer,uni=!civ&&(!w.out||w.dep);
+  const shirt=w.isPlayer?'#f2f2f2':civ?'#8a6f55':uni?'#2f5fa8':'#5c5c5c',arm2=w.isPlayer?'#cfcfcf':civ?'#6e5843':uni?'#24508f':'#4a4a4a',pants='#262633',skin='#f0c8a0';
   const hat=w.isPlayer?'#c62828':ROLES[w.role].hat;
   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x,y,8,3,0,0,7);ctx.fill();
   ctx.save();ctx.translate(x,y);ctx.scale(w.face,1);
@@ -1590,10 +1780,11 @@ function drawPerson(w){
   ln(0,hipY,sw*4,0,pants,3.5);ln(0,hipY,-sw*4,0,pants,3.5);rr(sw*4-1,-1,4,2,'#111');rr(-sw*4-1,-1,4,2,'#111');
   ln(0,hipY,shX,shY,shirt,7);
   if(w.isPlayer)ln(shX*0.9+1,shY+2,shX*0.5+1,hipY-1,'#c62828',2);
-  if(w.out){ln(0,hipY-1,shX,shY+2,'#f28c1e',7);ln(-3.5+shX*0.5,(hipY+shY)/2,3.5+shX*0.5,(hipY+shY)/2,'#ffffaa',1.5);}
+  if(w.out&&!civ){ln(0,hipY-1,shX,shY+2,w.vest||'#f28c1e',7);ln(-3.5+shX*0.5,(hipY+shY)/2,3.5+shX*0.5,(hipY+shY)/2,'#ffffaa',1.5);}
   const hx=shX+bend*3,hy=shY-5;ctx.fillStyle=skin;ctx.beginPath();ctx.arc(hx,hy,4.5,0,7);ctx.fill();
   ctx.fillStyle=hat;ctx.beginPath();ctx.arc(hx,hy-1,4.8,Math.PI,0);ctx.fill();rr(hx,hy-2,6,1.6,hat);rr(hx+2,hy-0.5,1.2,1.2,'#222');
   if(bt!=null&&bx!=null)boxS(bx,by,bt);
+  if(w.eom)txt('🏅',hx,hy-9,'#000',8,'center');
   ln(shX,shY+1,h1[0],h1[1],shirt,3);ctx.fillStyle=skin;ctx.beginPath();ctx.arc(h1[0],h1[1],1.8,0,7);ctx.fill();
   if(pose==='scan'){rr(h1[0]-1,h1[1]-3,5,4,'#222');if(Math.sin(t*40)>-0.3)ln(h1[0]+4,h1[1]-1,w.carry!=null?h1[0]+4:h1[0]+16,w.carry!=null?h1[1]+6:h1[1]+5,'#ff2020',1);}
   if(pose==='cut')ln(h1[0],h1[1],h1[0]+4,h1[1]-2,'#ccc',1.5);
@@ -1620,6 +1811,7 @@ function drawObj(o){const x=o.x*T,y=o.y*T;
       for(let i=4;i<T;i+=5){ctx.beginPath();ctx.moveTo(x+i,y+1);ctx.lineTo(x+i,y+T-1);ctx.stroke();}
       if(o.o)o.o.items.forEach((it,i)=>{const bx=x+8+(i%2)*14,by=y+9+((i/2)|0)*12;
         if(it.st==='d')boxS(bx,by,it.t,10,9);else{ctx.strokeStyle=TYPES[it.t];ctx.lineWidth=2;ctx.strokeRect(bx-5,by-4,10,9);}});
+      if(o.ready){rr(x+1,y+1,T-2,T-2,'rgba(80,200,255,.35)');txt('🚚?',x+16,y-2,'#06c',10,'center');}
       if(o.o&&o.done>0)txt('✓',x+T-8,y+10,'#0a0',12);
       if(o.o&&o.o.exp){const left=Math.ceil(o.o.dl-gT);rr(x,y-12,T,11,left>0?'rgba(255,200,0,.9)':'rgba(200,40,40,.9)');txt('⚡'+(left>0?left+'с':'!'),x+16,y-3,'#222',9,'center');}break;
     case 'press':{rr(x+2,y-8,T-4,T+6,'#5a6070');rr(x+5,y-5,T-10,T-6,'#2a2e38');
@@ -1633,6 +1825,16 @@ function drawObj(o){const x=o.x*T,y=o.y*T;
     case 'jackfloor':ln(x+6,y+24,x+10,y+14,'#333',2.5);ln(x+10,y+24,x+28,y+24,'#d33',3.5);ctx.fillStyle='#222';ctx.beginPath();ctx.arc(x+11,y+26,2.5,0,7);ctx.fill();break;
     case 'jackbox':rr(x+3,y+5,T-6,T-8,'#c99a5b');rr(x+3,y+5,T-6,3,'#a07040');txt('РОХЛЯ',x+16,y+20,'#5a3a10',8,'center');break;
     case 'bfloor':boxS(x+16,y+18,o.t,12,11);break;
+    case 'ship':rr(x+1,y+1,T-2,T-2,'#e8d27a');for(let i=-T;i<T;i+=8){ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+Math.max(0,i),y+Math.max(0,-i));ctx.lineTo(x+Math.min(T,i+T),y+Math.min(T,T-i));ctx.stroke();}
+      for(let i=0;i<o.n;i++)boxS(x+9+(i%2)*14,y+10+((i/2)|0)*12,'ord');txt('🚚',x+T-6,y+8,'#000',8,'center');break;
+    case 'retz':rr(x+1,y+1,T-2,T-2,'#9cc4e8');txt('↩',x+6,y+10,'#235',10,'center');o.box.slice(0,4).forEach((t,i)=>boxS(x+10+(i%2)*12,y+12+((i/2)|0)*10,t,9,8));if(o.box.length>4)txt('+'+(o.box.length-4),x+T-4,y+T-3,'#123',8,'right');if(o.trash)drawTrash(x+20,y+28,o.trash,'#c33');break;
+    case 'kgtin':rr(x+1,y+1,T-2,T-2,'#b0b4bc');txt('КГТ',x+16,y+9,'#333',7,'center');for(let i=0;i<Math.min(o.n,2);i++)boxS(x+10+i*12,y+24,'kgt');if(o.n>2)txt('×'+o.n,x+T-3,y+T-3,'#000',8,'right');break;
+    case 'kgtrack':rr(x+1,y+1,T-2,T-2,'rgba(0,0,0,.15)');rr(x+1,y+2,3,29,'#2b5fb5');rr(x+28,y+2,3,29,'#2b5fb5');rr(x+1,y+30,30,2,'#e8772e');for(let i=0;i<o.k;i++)boxS(x+10+i*12,y+22,'kgt');break;
+    case 'lockm':case 'lockf':{const c=o.type==='lockf'?'#d86aa0':'#4a7fd0';rr(x+1,y+1,T-2,T-2,c);for(let i=0;i<3;i++){rr(x+3+i*9,y+4,8,11,'#c8ccd4');rr(x+3+i*9,y+17,8,11,'#b8bcc4');rr(x+9+i*9,y+9,1,2,'#333');rr(x+9+i*9,y+22,1,2,'#333');}txt(o.type==='lockf'?'Ж':'М',x+T-4,y+8,'#fff',8,'right');break;}
+    case 'plant':rr(x+11,y+20,10,9,'#a0522d');ctx.fillStyle='#3a9a3a';for(const [a,b2,r] of [[16,12,7],[11,15,5],[21,15,5],[16,7,5]]){ctx.beginPath();ctx.arc(x+a,y+b2,r,0,7);ctx.fill();}break;
+    case 'safe':rr(x+4,y+4,T-8,T-8,'#5a5f68');rr(x+6,y+6,T-12,T-12,'#7a808a');ctx.strokeStyle='#ddd';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x+16,y+16,5,0,7);ctx.stroke();txt('📱',x+16,y+30,'#000',7,'center');break;
+    case 'canteen':rr(x+1,y+1,T-2,T-2,'#f3e2c0');rr(x+4,y+14,24,8,'#a8784a');ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+10,y+12,3,0,7);ctx.arc(x+22,y+12,3,0,7);ctx.fill();txt('🍲',x+16,y+9,'#000',8,'center');txt('★'.repeat(o.lv),x+16,y+30,'#c60',7,'center');break;
+    case 'vault':rr(x+1,y+1,T-2,T-2,'#2b2f38');rr(x+3,y+3,T-6,T-6,'#3c4250');for(let i=0;i<Math.min(o.n,6);i++)rr(x+6+(i%3)*8,y+8+((i/3)|0)*10,6,7,'#f2c230');txt('💎',x+T-5,y+T-3,'#000',8,'center');break;
     case 'office':rr(x+1,y+1,T-2,T-2,'#3d5a80');rr(x+4,y+4,T-8,T-8,'#e0e6ee');rr(x+7,y+14,18,7,'#6b4426');rr(x+10,y+7,8,6,'#4af');txt('ОФИС',x+16,y+29,'#fff',6,'center');{const n=Object.keys(spec).length;if(n)txt('👥'+n,x+T-2,y+2,'#000',9,'right');}break;
     case 'desk':rr(x+2,y+8,T-4,T-12,'#6b4426');rr(x+2,y+8,T-4,4,'#8b5a36');rr(x+9,y+1,14,10,'#222');rr(x+11,y+3,10,6,'#4af');rr(x+12,y+T-4,8,4,'#333');break;
   }
@@ -1658,7 +1860,7 @@ function draw(){
   if(f===0){rr(-ROAD*T,0,ROAD*T,GH*T,'#3b3e44');for(let y=0;y<GH*T;y+=40)rr(-ROAD*T+8,y,3,20,'#aaa');
     if(hasR()){rr(GW*T+4,0,ROAD*T,GH*T,'#3b3e44');for(let y=0;y<GH*T;y+=40)rr(GW*T+ROAD*T-10,y,3,20,'#aaa');}drawTruck();drawVan();}
   else{rr(-ROAD*T,0,ROAD*T,GH*T,'#14171d');txt('ЭТАЖ '+(f+1),-ROAD*T/2,GH*T/2,'#556',14,'center');}
-  rr(0,0,GW*T,GH*T,f===0?'#cfcabb':'#b9bcc4');
+  rr(0,0,GW*T,GH*T,floorColor(f));if(marking){ctx.strokeStyle='#f2c230';ctx.lineWidth=3;ctx.setLineDash([12,8]);ctx.strokeRect(T*0.5,T*0.5,(GW-1)*T,(GH-1)*T);ctx.setLineDash([]);}
   ctx.strokeStyle='rgba(0,0,0,.07)';ctx.lineWidth=1;
   for(let x=0;x<=GW;x++){ctx.beginPath();ctx.moveTo(x*T,0);ctx.lineTo(x*T,GH*T);ctx.stroke();}
   for(let y=0;y<=GH;y++){ctx.beginPath();ctx.moveTo(0,y*T);ctx.lineTo(GW*T,y*T);ctx.stroke();}
@@ -1690,6 +1892,10 @@ function draw(){
   tutHL();
   if(f===player.f&&!player.cur&&!player.q.length){const pv=previewE();if(pv){ctx.font='bold 11px Segoe UI,Arial';const tw=ctx.measureText(pv).width+12,x=player.px-tw/2,y=player.py-62;
     ctx.fillStyle='rgba(20,24,32,.88)';ctx.fillRect(x,y,tw,17);txt(pv,player.px,y+13,'#f2c230',11,'center');}}
+  if(SEAS&&SEAS.k==='ny'){const tt=performance.now()/400;for(let x2=8;x2<GW*T;x2+=22){ctx.fillStyle=['#f33','#3f3','#33f','#ff3'][((x2/22|0)+(tt|0))%4];ctx.beginPath();ctx.arc(x2,6,3,0,7);ctx.fill();}
+    if(f===0){const tx=(GW-1)*T+16,ty=(GH-1)*T+20;ctx.fillStyle='#1d6b2a';ctx.beginPath();ctx.moveTo(tx,ty-26);ctx.lineTo(tx-12,ty);ctx.lineTo(tx+12,ty);ctx.fill();txt('⭐',tx,ty-24,'#ff0',9,'center');}}
+  if(nightOn){ctx.fillStyle='rgba(10,20,70,.12)';ctx.fillRect(0,0,GW*T,GH*T);}
+  if(f===0&&busShowT>0){const bx=(DOOR.x-1)*T,by=GH*T+6;rr(bx,by,T*4,T*1.2,'#f2c230');rr(bx+4,by+4,T*3.6,10,'#9cf');txt('🚌 СЛУЖЕБНЫЙ',bx+T*2,by+T,'#333',9,'center');}
   if(dirtyMul()<1&&f===0)txt('⚠ Склад завален мусором — все работают медленнее!',6,GH*T-8,'#c00',13);
 }
 
@@ -1698,7 +1904,7 @@ let popW=null,popXY=[0,0],popReply='';
 function showWPop(w,e){const el=document.getElementById('wpop');
   if(e){popXY=[e.clientX+10,e.clientY-20];popReply='';}
   popW=w;
-  let h=`<b>${w.name}</b><small>${w.out?'аутсорс':'штат'} · ${ROLES[w.role].n}${w.out?'':' · настроение '+moodFace(w.mood)+' '+Math.round(w.mood)}</small><small>Грейд: ${gradeTxt(w)} · скорость ×${GRADES[gradeI(w)].m}${w.lic?' · ⚡ права':''}</small>${w.out?'':`<small>Операций сегодня: ${w.ops||0} → +${(w.ops||0)*PIECE} р. сдельно</small>`}
+  let h=`<b>${w.name}</b><small>${w.out?'аутсорс':'штат'} · ${ROLES[w.role].n}${w.out?'':' · настроение '+moodFace(w.mood)+' '+Math.round(w.mood)}</small><small>Грейд: ${gradeTxt(w)} · скорость ×${GRADES[gradeI(w)].m}${w.lic?' · ⚡ права':''}</small>${w.out?'':`<small>Рейтинг: <span style="color:#f2c230">${starStr(w)}</span> · ${sexOf(w)==='f'?'👩':'👨'}${hasLock()?(w.dressed&&!w.noLock?' · 👕 в форме':' · в своей одежде'):''}</small><small>Операций сегодня: ${w.ops||0} → ${payMode==='piece'?`заработал ${(w.ops||0)*PIECE_ONLY} р.`:`+${(w.ops||0)*PIECE} р. сдельно`}</small>`}
   <div style="background:#151920;padding:6px;border-radius:4px;max-width:270px;white-space:normal">💭 «${thought(w)}»</div>`;
   if(popReply)h+=`<div style="background:#fff;color:#222;padding:6px;border-radius:4px;max-width:270px;white-space:normal">🗣 «${popReply}»</div>`;
   h+=`<small>Сказать:</small>
@@ -1723,7 +1929,7 @@ function assignW(id,r){const w=workers.find(w=>w.id===id);if(!w)return;w.role=r;
 
 // ---- перемещение / меню объекта ----
 let moveObj=null;
-const ONAME={jackfloor:'Рохля на полу',jackpark:'Стоянка рохлей',jackbox:'Рохля в коробке',bfloor:'Коробка на полу',dock:'Ворота',pfloor:'Поддон на полу',recv:'Место приёмки',table:'Стол сортировки',rack:'Стеллаж',cage:'Клетка заказа',press:'Пресс',stack:'Место для поддонов',desk:'Стол начальника',office:'Офис специалистов'};
+const ONAME={jackfloor:'Рохля на полу',jackpark:'Стоянка рохлей',jackbox:'Рохля в коробке',bfloor:'Коробка на полу',dock:'Ворота',pfloor:'Поддон на полу',recv:'Место приёмки',table:'Стол сортировки',rack:'Стеллаж',cage:'Клетка заказа',press:'Пресс',stack:'Место для поддонов',desk:'Стол начальника',office:'Офис специалистов',ship:'Зона отгрузки',retz:'Зона возвратов',kgtin:'Приёмка КГТ',kgtrack:'Стеллаж КГТ',plant:'Растение',lockm:'Раздевалка М',lockf:'Раздевалка Ж',safe:'Сейф для телефонов',canteen:'Столовая',vault:'Склад ценного'};
 function busy(o){
   switch(o.type){
     case 'dock':return 'Ворота нельзя двигать';
@@ -1822,7 +2028,7 @@ cv.addEventListener('pointerup',e=>{const d=pDown;pDown=null;if(selRect){const r
     if(o&&(d.add||moveSel.includes(o)||(moveSel.length&&!groupOk(x,y,viewF)&&!canMoveObj(o))))startMove(o,true);
     else if(moveSel.length)finishMove(x,y);else if(o)startMove(o);}
   else if(mode!=='norm')build(mode,x,y);
-  else{if(hoverW&&!hoverW.isPlayer){showWPop(hoverW,e);return;}hideWPop();const o=objAt(viewF,x,y);if(o&&d.add&&!canMoveObj(o)){startMove(o,true);return;}if(o&&o.type==='office'&&!d.add){infoOpen('office');return;}if(o)showOPop(o,e);else{const ct=connAt(x,y);if(ct)showConnPop(x,y,ct,e);}}});
+  else{if(hoverW&&!hoverW.isPlayer){showWPop(hoverW,e);return;}hideWPop();const o=objAt(viewF,x,y);if(o&&d.add&&!canMoveObj(o)){startMove(o,true);return;}if(o&&o.type==='office'&&!d.add){infoOpen('office');return;}if(o&&o.type==='canteen'&&!d.add){infoOpen('canteen');return;}if(o)showOPop(o,e);else{const ct=connAt(x,y);if(ct)showConnPop(x,y,ct,e);}}});
 cv.addEventListener('pointercancel',()=>pDown=null);
 // щипок двумя пальцами — приближение
 let pinch=null;const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
@@ -1842,8 +2048,10 @@ function buildLeft(){
   for(const k in BUILD){const b=BUILD[k];
     if((k==='lift'||k==='stairs')&&floors<2)continue;
     if(k==='jackpark'&&isEasy())continue;
+    if(!unlocked(k)){h+=`<button disabled title="${b.tip}">${b.ic} ${b.n}<br><small>🔒 откроется на ур. ${UNL[k]}</small></button>`;continue;}
     const CNk=k==='lift'||k==='stairs';const dis=(viewF>0&&k!=='rack'&&!CNk)||(viewF>0&&!lifts.length&&!CNk)||(k==='desk'&&OB('desk').length)||(k==='office'&&OB('office').length);
     h+=`<button title="${b.tip}" class="${mode===k?'on':''}" ${dis?'disabled':''} onclick="setMode('${k}')">${b.ic} ${b.n}<br><small>${b.c} р.</small></button>`;}
+  h+=`<details style="margin:4px 0"><summary style="cursor:pointer;color:#f2c230">🎨 Дизайн склада</summary><small>Цвет пола (2000 р.):</small><div style="display:flex;flex-wrap:wrap;gap:3px">${Object.keys(FLOORS).map(c=>`<button onclick="setFloorCol('${c}')" title="${FLOORS[c]}" style="width:30px;height:24px;background:${c};${floorColor(0)===c?'outline:2px solid #fff':''}"></button>`).join('')}</div><button onclick="buyMarking()" ${marking?'disabled':''}>${marking?'✔ Разметка есть':'🟨 Разметка проходов — 3000 р.<br><small>меньше пересорта</small>'}</button><small style="color:#aaa">🌿 Растения — в списке выше</small></details>`;
   h+=`<button class="${mode==='move'?'on':''}" onclick="setMode('move')">↔ Переместить</button>`;
   h+=`<button class="${mode==='del'?'on':''}" onclick="setMode('del')">❌ Снести (½ цены)</button>`;
   h+='<div style="font-size:13px;color:#aaa;margin-top:4px">Клик по объекту — меню: переместить, закрыть/открыть для работы</div>';
@@ -1854,7 +2062,7 @@ function buildLeft(){
   h+='<div class="h">Здание</div>';
   h+=`<button onclick="expandDown()">📐 Расширить вниз (+4)<br><small>${expDCost()} р.</small></button>`;
   h+=`<button onclick="expand()">📐 Расширить вправо (+6)<br><small>${expCost()} р.</small></button>`;
-  h+=`<button onclick="buyFloor()">🏢 Купить этаж ${floors+1}<br><small>${floorCost()} р.</small></button>`;
+  h+=unlocked('floor')?`<button onclick="buyFloor()">🏢 Купить этаж ${floors+1}<br><small>${floorCost()} р.</small></button>`:`<button disabled>🏢 Купить этаж<br><small>🔒 откроется на ур. ${UNL.floor}</small></button>`;
   L.innerHTML=h;
   let fb='';if(floors>1)fb=`<span style="display:inline-flex;align-items:center;gap:2px;white-space:nowrap"><button onclick="setFloor(viewF-1)" ${viewF<=0?'disabled':''}>◀</button><span class="st" title="PageUp / PageDown">🏢 Этаж ${viewF+1}/${floors}${player&&player.f!==viewF?' <small style="color:#f2c230">(ты на '+(player.f+1)+')</small>':''}</span><button onclick="setFloor(viewF+1)" ${viewF>=floors-1?'disabled':''}>▶</button></span>`;
   document.getElementById('floorBtns').innerHTML=fb;
@@ -1906,7 +2114,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v61'} — отчёт`,
+  return [`СкладМастер ${'v66'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1952,7 +2160,14 @@ function renderBoss(){
     <td><input type="number" id="cz${i}" value="${c.want}" step="50" min="300"> р.</td>
     <td><button onclick="hireCand(${i})">Пригласить</button></td></tr>`;});h+='</table>';}
   h+=`<div style="font-size:12px;color:#aaa;margin-top:4px">Мало предложишь — откажется. Платишь меньше, чем хочет — злится, работает медленнее и может уволиться. «Без выходных» — устаёт.</div>
-  <div style="color:#aaa;font-size:13px;margin:4px 0">💵 Штатным платим оклад за смену + <b>${PIECE} р. за каждую операцию</b> (принял, отсортировал, разместил, подобрал, отпрессовал).</div>
+  <div style="margin:6px 0">💵 Оплата штата: <button onclick="payMode='fix';renderBoss()" style="padding:4px 8px;${payMode==='fix'?'background:#f2c230;color:#000':''}">Оклад + ${PIECE} р./операция</button> <button onclick="payMode='piece';renderBoss()" style="padding:4px 8px;${payMode==='piece'?'background:#f2c230;color:#000':''}">Только сдельно — ${PIECE_ONLY} р. за операцию</button><br><small style="color:#aaa">Сдельно: кто больше напикал (принял, отсортировал, разместил, подобрал) — тот больше получил. Кто стоит — ничего не стоит тебе, но грустит и может уйти.</small></div>
+  <h3>⚙ Режим работы</h3><div><label><input type="checkbox" style="width:auto" ${nightOn?'checked':''} onchange="nightOn=this.checked;renderBoss()"> 🌙 Работать и ночью — заказов и фур ×1,4, зарплаты +20%, ночью люди на 7% медленнее и чаще ошибаются</label></div>
+  <div><label><input type="checkbox" style="width:auto" ${kpiOn?'checked':''} onchange="kpiOn=this.checked;renderBoss()"> ⏱ Нормы и KPI — выполнил норму: премия 200 р. и настроение ↑, меньше 60% — беседа (настроение ↓)</label></div>
+  <div style="margin-top:4px"><button onclick="startInv()" ${invT>0?'disabled':''}>📋 Провести инвентаризацию — 2000 р.</button> <small style="color:#aaa">${invT>0?'идёт…':day<invUntil?`недостач меньше ещё ${invUntil-day} дн.`:'стеллажи закрываются на 40 сек: исправляет пересорт, недостач меньше 7 дней'}</small></div>
+  <h3>🚌 Транспорт и форма</h3><div>Служебных автобусов: <b>${buses}</b> (по 25 мест, ${2500} р./день каждый) <button onclick="buses++;renderBoss()">+ автобус</button> <button onclick="buses=Math.max(0,buses-1);renderBoss()" ${buses?'':'disabled'}>−</button><br><small style="color:#aaa">Без автобуса каждый 4-й опаздывает, аутсорс чаще не выходит. Автобусом едут бесплатно для людей.</small></div>
+  <div style="margin-top:6px">Жилеты аутсорса для новых: ${Object.keys(VESTS).map(c=>`<button onclick="vestCol='${c}';renderBoss()" style="padding:3px 8px;${vestCol===c?'outline:2px solid #fff':''}"><span class="dot" style="background:${c}"></span>${VESTS[c]}</button>`).join(' ')}<br><small style="color:#aaa">Меняй цвет — и по жилетам будет видно, кто когда пришёл.</small></div>
+  <div style="margin-top:6px"><label><input type="checkbox" style="width:auto" ${outUni?'checked':''} onchange="outUni=this.checked;renderBoss()"> 👕 Выдавать форму аутсорсу — залог 1200 р. (возвращаем через 8 смен). В форме +5% к скорости</label><br><small style="color:#aaa">Штат получает форму бесплатно (нужны раздевалки).</small></div>
+  <h3>📅 План на день</h3><div>${planHTML()}</div>
   <h3>👷 Аутсорс (агентство) — ${OUT_PAY} р. за смену</h3><div style="margin-bottom:4px">Нажми на работу — человек сразу приедет на склад в оранжевом жилете:</div><div>`;
   for(const r in ROLES)h+=`<button style="margin:2px" onclick="hireOut('${r}')">+ ${ROLES[r].n}</button>`;
   h+=`</div><div style="font-size:12px;color:#aaa;margin-top:4px">Выходят каждый день, но медленнее, ошибаются и иногда не приходят. Платишь только за вышедших.</div>
@@ -1985,8 +2200,8 @@ function hireCand(i){const c=cands[i];const role=document.getElementById('cr'+i)
   spawnPos(w);workers.push(w);
   w.today=onShift(w,day);if(!w.today)w.absent=true;
   toast(`${c.name} принят(а) в штат${w.today?' и вышел(ла) на смену':' — выйдет по графику'}`,2.5);renderBoss();}
-function hireOut(role){const w=mkPerson({role,out:true,name:NAMES[Math.floor(Math.random()*NAMES.length)],skill:0.75,want:OUT_PAY,sal:OUT_PAY,sched:'agency',off:0,today:true});
-  spawnPos(w);workers.push(w);toast('Аутсорсер '+w.name+' приехал',2);renderBoss();}
+function hireOut(role){const w=mkPerson({role,out:true,vest:vestCol,dressed:!hasLock(),name:NAMES[Math.floor(Math.random()*NAMES.length)],skill:0.75,want:OUT_PAY,sal:OUT_PAY,sched:'agency',off:0,today:true});
+  spawnPos(w);workers.push(w);if(outUni){w.dep=1200;w.depN=0;money+=1200;}toast('Аутсорсер '+w.name+' приехал'+(outUni?' · залог за форму +1200 р.':''),2);renderBoss();}
 function setW(id,k,v){const w=workers.find(w=>w.id===id);if(!w)return;w[k]=v;
   if(k==='sched'){const on=onShift(w,day);if(on){w.absent=false;w.absPend=false;w.today=true;}}
   renderBoss();}
@@ -2033,7 +2248,7 @@ function hint(){const P=player;
   if(P.jack)return 'У тебя рохля → подцепи поддон (E) или поставь рохлю на стоянку (E)';
   return '';}
 let lastTopH=0;
-const SEC_OPEN=['bn','fin','an'];
+const SEC_OPEN=['bn','fin','an','plan'];
 function secCol(k){return settings.col&&k in settings.col?settings.col[k]:!SEC_OPEN.includes(k);}
 function sec(k,title,body,mini){const col=secCol(k);
   return `<div class="sec"><div class="secH" onclick="togSec('${k}')"><b>${col?'▸':'▾'} ${title}</b>${col&&mini?` <small style="color:#aaa">${mini}</small>`:''}</div>${col?'':`<div class="secB">${body}</div>`}</div>`;}
@@ -2047,8 +2262,9 @@ function hud(){
   setH('sDay',`📅 День ${day} <span class="bar"><i style="width:${Math.round(dayT/DAYLEN*50)*2}%"></i></span>`);
   setH('sSave',(VK.on&&performance.now()-VK.cloudT<3000)?'☁ <span style="color:#7dff7d">в VK</span>':saveFail?'<span style="color:#f55">💾 ошибка!</span>':(performance.now()-savedT<1200?'💾 <span style="color:#7dff7d">'+(isMob?'✓':'сохранено')+'</span>':'💾 <span style="opacity:0">'+(isMob?'✓':'сохранено')+'</span>'));
   setH('sPvz',`🏙 ${nets[netCur].name} · 🏪 ПВЗ: ${pvz} · 📦 ${totalShip} · 👥 ${workers.filter(w=>!w.absent).length}/${workers.length}`);
-  const pcs=workers.reduce((a,w)=>a+(w.ops||0)*PIECE,0),salToday=workers.reduce((a,w)=>a+(w.today?w.sal:0),0)+pcs,exp=salToday+rent()+specSal(),fc=money-exp;
-  let o=sec('fin',`💰 Финансы (день ${day})`,`Заработано сегодня: <span style="color:#7dff7d">+${dayInc} р.</span><br>Вечером спишут: <span style="color:#f77">−${exp} р.</span><br><small>зарплаты ${salToday} (из них сдельно ${pcs}) + аренда ${rent()}${specSal()?' + специалисты '+specSal():''}</small><br><small>🏆 рекорд отгрузки за день: ${bestShip}</small><br>Останется: <b style="color:${fc<0?'#f55':'#7dff7d'}">${Math.floor(fc)} р.</b>${fc<0?'<br><small style="color:#f77">⚠ Не хватает! Отпусти лишних людей или сократи расходы</small>':''}${loan?`<br><small>🏦 Кредит: ещё ${loan.left} дн. по ${loan.pay} р.</small>`:money<50000?'<br><button onclick="takeLoan()" style="width:100%;margin-top:3px;padding:5px">🏦 Взять кредит 200 000 р. (10 дн. по 22 000)</button>':''}`,`${fc<0?'<span style="color:#f55">':''}${Math.floor(fc)} р. к вечеру${fc<0?'</span>':''}`);
+  const pcs=workers.reduce((a,w)=>a+(w.out?0:payMode==='piece'?(w.ops||0)*PIECE_ONLY:(w.ops||0)*PIECE),0),salToday=workers.reduce((a,w)=>a+payOf(w),0),exp=salToday+rent()+specSal()+busCost()+canteenCost(),fc=money-exp;
+  let o=sec('fin',`💰 Финансы (день ${day})`,`Заработано сегодня: <span style="color:#7dff7d">+${dayInc} р.</span><br>Вечером спишут: <span style="color:#f77">−${exp} р.</span><br><small>зарплаты ${salToday} (из них сдельно ${pcs}) + аренда ${rent()}${specSal()?' + специалисты '+specSal():''}${busCost()?' + автобусы '+busCost():''}${canteenCost()?' + столовая '+canteenCost():''}</small><br><small>🏆 рекорд отгрузки за день: ${bestShip}</small><br>Останется: <b style="color:${fc<0?'#f55':'#7dff7d'}">${Math.floor(fc)} р.</b>${fc<0?'<br><small style="color:#f77">⚠ Не хватает! Отпусти лишних людей или сократи расходы</small>':''}${loan?`<br><small>🏦 Кредит: ещё ${loan.left} дн. по ${loan.pay} р.</small><br><button onclick="repayLoan()" style="width:100%;margin-top:3px;padding:5px">🏦 Погасить досрочно — ${loanLeft()} р.</button>`:money<50000?'<br><button onclick="takeLoan()" style="width:100%;margin-top:3px;padding:5px">🏦 Взять кредит 200 000 р. (10 дн. по 22 000)</button>':''}`,`${fc<0?'<span style="color:#f55">':''}${Math.floor(fc)} р. к вечеру${fc<0?'</span>':''}`);
+  o+=sec('plan','📅 План на день',planHTML(),(()=>{const p=dayPlan();return `~${p.tr} фур · нужно ${p.tot}/вышло ${p.have}`;})());
   {const worst=Math.max(...Object.keys(bn).map(k=>bnLevel(k,bn[k])));o+=sec('bn','🚦 Узкие места',bnHTML(),['🟢 всё успевают','🟡 есть очереди','🔴 есть завал'][worst]);}
   if(spec.an)o+=sec('an','📊 Аналитик советует',anTips(),'');
   if(OB('office').length)o+=sec('off','🏢 Офис',`Работают: ${Object.keys(spec).map(k=>SPEC[k].n).join(', ')||'никого'}<br><button onclick="infoOpen('office')" style="width:100%;margin-top:4px;padding:5px">Открыть офис</button>`,`${Object.keys(spec).length}/5`);
@@ -2094,7 +2310,7 @@ const TUT=[
  {t:'Размещение: возьми коробку со стола (<b>E</b>) и положи на стеллаж (<b>E</b>).',ok:()=>OB('rack').some(r=>r.cells.some(v=>v!==null))||st.pCage>0||totalShip>0,hl:()=>OB('rack')},
  {t:'Поставь <b>1 Клетку заказа</b> (кнопка <svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg>) — туда собирают заказы для ПВЗ. Лучше ближе к воротам в ПВЗ.',ok:()=>OB('cage').length>=1,cnt:()=>[OB('cage').length,1]},
  {t:'Подбор: над клеткой видно, какие цвета нужны. Возьми коробку нужного цвета (со стеллажа, стола или прямо с поддона) и положи в клетку (<b>E</b>).',ok:()=>st.pCage>0||totalShip>0,hl:()=>OB('cage')},
- {t:'Отлично! Собери заказ целиком — клетка уедет в ПВЗ, и тебе заплатят.',ok:()=>totalShip>0,hl:()=>OB('cage')},
+ {t:'Отлично! Собери заказ целиком. Потом нажми <b>E</b> у клетки — возьмёшь заказ — и отнеси в жёлтую <b>зону отгрузки 🚚</b> (E). Газель увезёт его в ПВЗ, и тебе заплатят.',ok:()=>totalShip>0,hl:()=>OB('cage').some(c=>c.ready)||player.carry==='ord'?OB('ship'):OB('cage')},
  {t:'Мусор (плёнка и картон) копится и тормозит работу. Поставь <b>1 Пресс</b> (🗜). Мусор носи в пресс (<b>E</b>), при 6/6 нажми у пресса <b>E</b> — получишь тюк.',ok:()=>OB('press').length>=1,cnt:()=>[OB('press').length,1]},
  {t:'Устал работать один? Открой <b>🧑‍💼 Кабинет</b> и пригласи <b>1 сотрудника</b>: выбери работу, график и зарплату. Или возьми аутсорсера.',ok:()=>workers.length>=1,cnt:()=>[workers.length,1]},
  {t:'Кликни по своему сотруднику на складе — можно сразу указать, где ему работать. Дальше расширяй склад, покупай этажи и ПВЗ. Удачи!',ok:()=>false,last:true}
