@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v49</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v50</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -90,7 +90,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <span class="st" id="sDay"></span>
   <span class="st" id="sPvz"></span><span class="st" id="sSave" title="Автосохранение каждые 5 секунд">💾</span>
   <button id="bPause">⏸</button><button id="b1" class="on spd">1x</button><button id="b2" class="spd">2x</button><button id="b4" class="spd">4x</button><button id="bSpd">▶ 1x</button>
-  <button class="mobOnly" id="bLeftT">🔨 Стройка</button><button class="mobOnly" id="bOrdT">📋</button>
+  <button class="mobOnly" id="bLeftT">🔨 Стройка</button><button class="mobOnly" id="bOrdT" style="font-size:13px">🚦 Склад</button>
   <button id="bZm">🔍−</button><button id="bZp">🔍+</button>
   <span id="floorBtns"></span>
   <button onclick="openAdBox()" id="bAd" style="background:#7b5c12">📺 Бонус</button>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v49</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v50</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v49</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v50</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v49</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v50</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -1096,6 +1096,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v50','📱 на телефоне вверху кнопка 🚦 со светофором этапов — нажми, откроется окно склада · справа разделы свёрнуты, кроме важных, есть «Свернуть всё»'],
  ['v49','🚚 фур больше при большем числе ворот · 😴 счётчик «Без дела» в узких местах · подсказки, почему приёмка ждёт'],
  ['v48','клетка заказа теперь нарисована как настоящая решётчатая тележка'],
  ['v47','💬 сотрудники меньше болтают: 💤 вместо «жду работу», реплика видна при наведении · выбор в ⚙ Настройках'],
@@ -1757,7 +1758,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v49'} — отчёт`,
+  return [`СкладМастер ${'v50'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1880,9 +1881,12 @@ function hint(){const P=player;
   if(P.jack)return 'У тебя рохля → подцепи поддон (E) или поставь рохлю на стоянку (E)';
   return '';}
 let lastTopH=0;
-function sec(k,title,body,mini){const col=settings.col&&settings.col[k];
+const SEC_OPEN=['bn','fin'];
+function secCol(k){return settings.col&&k in settings.col?settings.col[k]:!SEC_OPEN.includes(k);}
+function sec(k,title,body,mini){const col=secCol(k);
   return `<div class="sec"><div class="secH" onclick="togSec('${k}')"><b>${col?'▸':'▾'} ${title}</b>${col&&mini?` <small style="color:#aaa">${mini}</small>`:''}</div>${col?'':`<div class="secB">${body}</div>`}</div>`;}
-function togSec(k){settings.col=settings.col||{};settings.col[k]=!settings.col[k];saveSettings();document.getElementById('ordIn')._h=null;hud();}
+function secAll(c){settings.col=settings.col||{};document.querySelectorAll('#ordIn .secH').forEach(h=>{const m=(h.getAttribute('onclick')||'').match(/togSec\('(\w+)'\)/);if(m)settings.col[m[1]]=c;});saveSettings();document.getElementById('ordIn')._h=null;hud();}
+function togSec(k){settings.col=settings.col||{};settings.col[k]=!secCol(k);saveSettings();document.getElementById('ordIn')._h=null;hud();}
 function setH(id,h){const el=document.getElementById(id);if(el._h!==h){el._h=h;el.innerHTML=h;}}
 function hud(){
   if(!started)return;
@@ -1906,7 +1910,10 @@ function hud(){
   const st=[0,0,0];OB('rack').forEach(r=>r.cells.forEach(v=>{if(v!==null)st[v]++;}));const cap=OB('rack').reduce((a,r)=>a+r.cells.length,0);
   o+=sec('rack','🗄 На стеллажах',st.map((n,i)=>`<span class="dot" style="background:${TYPES[i]}"></span>${n}`).join(' ')+`<br>Занято ячеек: ${st[0]+st[1]+st[2]} из ${cap}`,`${st[0]+st[1]+st[2]}/${cap}`);
   {const ch=checklist();if(ch.includes('○'))o+=sec('build','🔨 Что построить',ch,'');}
+  o='<div style="display:flex;gap:4px;margin-bottom:4px"><button onclick="secAll(true)" style="flex:1;font-size:12px;padding:3px">▸ Свернуть всё</button><button onclick="secAll(false)" style="flex:1;font-size:12px;padding:3px">▾ Развернуть всё</button></div>'+o;
   setH('ordIn',o);
+  if(isMob){const ic=['🟢','🟡','🔴'],sh={recv:'📥',sort:'🧮',put:'🗄',pick:'🛒',ship:'🚐'};
+    setH('bOrdT','🚦'+Object.keys(sh).map(k=>`<span style="margin-left:3px">${sh[k]}${ic[bnLevel(k,bn[k])]}</span>`).join(''));}
   document.getElementById('bCancel').style.display=mode!=='norm'?'block':'none';
   let b=isMob?'<b>Джойстик</b> — ходить · <b>E</b> — действие · <b>Q</b> — сбросить/положить · <b>1-4</b> — взять цвет/мусор · <b>R</b> — меню выбора · <b>тап</b> по объекту или человеку — меню · <b>свайп</b> — двигать камеру':'<b>WASD</b>/стрелки — ходить · <b>E</b>/пробел — действие · <b>Q</b> — сбросить/положить · <b>1-4</b> — взять цвет/мусор · <b>R</b> — меню выбора · <b>Esc</b> — меню · <b>ПКМ</b> — отмена стройки · <b>колёсико</b> — приближение';
   const hh=mode==='move'?(moveSel.length?`↔ Выбрано: ${moveSel.length} · клик по объекту — добавить/убрать · клик по пустому месту — поставить · ПКМ — отмена`:'↔ Кликни по объекту или обведи рамкой несколько (зажми и тяни)'):hint();if(hh)b=`<b style="color:#f2c230">${hh}</b> · `+b;
