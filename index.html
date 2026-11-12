@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v58</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v59</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v58</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v59</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v58</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v59</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v58</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v59</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -547,7 +547,18 @@ function autoFloor(w){if(floors<2||!lifts.length||w.flFix)return;const cur=w.fl|
   if(cur>0){if(cnt(cur)>Math.ceil(floorWork(cur)/3))w.fl=0;return;}
   let best=0,bs=0;for(let f=1;f<floors;f++){const lack=Math.ceil(floorWork(f)/3)-cnt(f);if(lack>bs){bs=lack;best=f;}}
   if(best)w.fl=best;}
-function cargoStep(dt){for(const c of cargo)if(c.eta>0)c.eta-=dt;}
+let fbT=0;
+function cargoStep(dt){for(const c of cargo)if(c.eta>0)c.eta-=dt;fbT+=dt;if(fbT>=1.5){fbT=0;floorBalance();}}
+function floorBalance(){if(floors<2||!lifts.length)return;
+  const pool=workers.filter(w=>!w.absent&&!w.quit&&!w.fire&&w.role==='auto'&&!w.flFix);
+  for(let f=1;f<floors;f++){const work=floorWork(f),need=work?Math.min(12,Math.max(1,Math.ceil(work/4))):0;
+    const here=workers.filter(w=>!w.absent&&['auto','put','pick'].includes(w.role)&&(w.fl||0)===f);
+    let lack=need-here.length;
+    if(lack>0){const cand=pool.filter(w=>(w.fl||0)===0).sort((a,b)=>(a.q.length?1:0)-(b.q.length?1:0));for(const w of cand.slice(0,lack))w.fl=f;}
+    else if(lack<0){for(const w of here.filter(w=>w.role==='auto'&&!w.flFix&&!w.q.length).slice(0,-lack))w.fl=0;}}}
+function upHTML(){if(floors<2)return '';let h='';for(let f=1;f<floors;f++){const n=cargo.filter(c=>c.kind==='put'&&c.f===f).length,ppl=workers.filter(w=>!w.absent&&(w.fl||0)===f&&['auto','put','pick'].includes(w.role)).length;
+  h+=`<div>${n>15&&!ppl?'🔴':n>15?'🟡':'🟢'} ⬆ Этаж ${f+1}: <small style="color:#aaa">у лифта ${n} кор. · людей ${ppl}</small></div>`;}
+  return h+(!workers.some(w=>w.role==='auto')&&cargo.length?'<small style="color:#f2c230">Наверх ходят только «Где нужнее» или те, кому ты выбрал этаж (клик по человеку → Этаж работы)</small><br>':'');}
 function findFreeCell(t,from,fl){let best=null,bs=1e9;
   for(const r of OW('rack')){if(fl==null?!rackOk(r):r.f!==fl)continue;const c=r.cells.findIndex((v,i)=>v===null&&!r.res[i]);if(c<0)continue;
     const sc=dist(r,from)-(r.cells.includes(t)?6:0);if(sc<bs){bs=sc;best=[r,c];}}return best;}
@@ -1067,7 +1078,7 @@ function bnStep(dt){bnT+=dt;if(bnT<0.5)return;const d=bnT;bnT=0;const r=bnRaw();
   if(!curHint&&!uiOpen()&&tutStep>=TUT.length&&settings.hints!==false){const k=Object.keys(bn).find(k=>redT[k]>15&&!(hintCD[k]>gT));if(k)showHint(k);}}
 function bnHTML(){const icon=['🟢','🟡','🔴'];const fmt={ship:v=>`${Math.round(v)} зак. ждут машину`,recv:v=>`${Math.round(v)} поддон. ждут`,sort:v=>`${Math.round(v)} кор. ждут`,put:v=>`${Math.round(v)} кор. на столах`,pick:v=>`${Math.round(v)} тов. собираются`,space:v=>`занято ${Math.round(v)}%`,trash:v=>`${Math.round(v)} кусков`};
   return Object.keys(bn).map(k=>{const lv=bnLevel(k,bn[k]);return `<div style="cursor:${lv?'pointer':'default'}" ${lv?`onclick="showHint('${k}')"`:''}>${icon[lv]} ${BN_N[k]}: <small style="color:#aaa">${fmt[k](bn[k])}</small>${!['space','trash','ship'].includes(k)?` <small style="color:#888">· людей ${roleCount(k)+(roleCount('auto')?'+'+roleCount('auto')+'⭐':'')}</small>`:''}${lv===2?' <b style="color:#f77">← завал</b>':''}</div>`;}).join('')+
-    idleHTML()+'<small style="color:#888">🔴 — нажми, чтобы получить совет. «⭐» — сотрудники «Где нужнее»</small>';}
+    upHTML()+idleHTML()+'<small style="color:#888">🔴 — нажми, чтобы получить совет. «⭐» — сотрудники «Где нужнее»</small>';}
 let rushAllT=0,loan=null;
 function takeLoan(){if(loan)return;loan={left:10,pay:22000};money+=200000;toast('🏦 Кредит 200 000 р. Возврат: 10 дней по 22 000 р.',4);hud();}
 function rushAll(){if(!OB('desk').length){toast('Нужен 🧑‍💼 Стол начальника — поставь его',3);return;}if(rushAllT>0)return;
@@ -1146,6 +1157,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v59','⬆ люди «Где нужнее» сами поднимаются на 2 этаж, когда у лифта копятся коробки · в «Узких местах» видно, сколько коробок ждут наверху'],
  ['v58','🚶 нажми на лестницу или лифт — «Пойти на 2 этаж» или «Посмотреть»'],
  ['v57','🏢 на 2 этаже больше не видно, что творится на 1-м'],
  ['v56','↔ лифт и лестницу можно перенести: кликни по ним — появится меню'],
@@ -1842,7 +1854,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v58'} — отчёт`,
+  return [`СкладМастер ${'v59'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
