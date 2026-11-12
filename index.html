@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v56</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v57</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v56</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v57</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v56</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v57</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v56</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v57</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -427,7 +427,7 @@ const GOALS=[
 function checkGoal(){const g=GOALS[goalI];if(g&&g.ok()){money+=g.rw;goalI++;addXP(30);toast(`🏁 Цель выполнена: ${g.t} · +${g.rw} р.`,4);if(AC)chime();}}
 function goalHTML(){const g=GOALS[goalI];return g?`<b>🏁 Цель склада ${goalI+1}/${GOALS.length}</b><br>${g.t} <small style="color:#f2c230">+${g.rw}</small><br><br>`:'<b>🏆 Все цели выполнены!</b><br><br>';}
 const isErr=w=>w.out&&Math.random()<(upg.light?0.05:0.12);
-const oops=w=>fn(()=>{w.bubble=1.6;float(w.px,w.py-34,'ошибка!','#ff5555');});
+const oops=w=>fn(()=>{w.bubble=1.6;float(w.px,w.py-34,'ошибка!','#ff5555',w.f);});
 let gameMode='real';const isEasy=()=>gameMode==='easy';
 const hasJack=P=>P.jack||isEasy();
 function dirtyMul(){let s=0;for(const o of objs)if(o.trash)s+=o.trash;return s>(isEasy()?30:12)?0.7:1;}
@@ -927,8 +927,8 @@ function tryAct(P,o){
 }
 
 // ================= ЭКОНОМИКА =================
-function float(x,y,txt,col,f){floats.push({x,y,txt,col,t:0,f:f==null?viewF:f});}
-function earn(v,x,y){money+=v;dayInc+=v;float(x,y,'+'+v+' р.','#7dff7d');}
+function float(x,y,txt,col,f){floats.push({x,y,txt,col,t:0,f:f==null?0:f});}
+function earn(v,x,y,f){money+=v;dayInc+=v;float(x,y,'+'+v+' р.','#7dff7d',f);}
 let toastT=0;
 function toast(s,dur){const e=document.getElementById('toast');e.textContent=String(s).replace(/<svg[\s\S]*?<\/svg>/g,'🛒');e.style.display='block';toastT=dur||3;}
 function demandColor(){const need=[0,0,0];
@@ -1146,6 +1146,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v57','🏢 на 2 этаже больше не видно, что творится на 1-м'],
  ['v56','↔ лифт и лестницу можно перенести: кликни по ним — появится меню'],
  ['v55','🏢 этажи по-новому: лестница для людей, грузовой лифт только для товара (можно несколько, можно переносить ↔). Наверху работают свои люди — «Где нужнее» сами идут туда, где есть работа. В меню сотрудника можно выбрать этаж'],
  ['v54','🏦 кредит, если кончились деньги · 💡 подсказки можно выключить · совет «нужны стеллажи», когда склад забит · исправлен значок в сообщениях'],
@@ -1620,7 +1621,7 @@ function draw(){
   tutHL();
   if(f===player.f&&!player.cur&&!player.q.length){const pv=previewE();if(pv){ctx.font='bold 11px Segoe UI,Arial';const tw=ctx.measureText(pv).width+12,x=player.px-tw/2,y=player.py-62;
     ctx.fillStyle='rgba(20,24,32,.88)';ctx.fillRect(x,y,tw,17);txt(pv,player.px,y+13,'#f2c230',11,'center');}}
-  if(dirtyMul()<1)txt('⚠ Склад завален мусором — все работают медленнее!',6,GH*T-8,'#c00',13);
+  if(dirtyMul()<1&&f===0)txt('⚠ Склад завален мусором — все работают медленнее!',6,GH*T-8,'#c00',13);
 }
 
 
@@ -1836,7 +1837,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v56'} — отчёт`,
+  return [`СкладМастер ${'v57'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
