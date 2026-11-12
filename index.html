@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v55</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v56</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v55</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v56</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v55</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v56</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v55</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v56</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -1146,6 +1146,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v56','↔ лифт и лестницу можно перенести: кликни по ним — появится меню'],
  ['v55','🏢 этажи по-новому: лестница для людей, грузовой лифт только для товара (можно несколько, можно переносить ↔). Наверху работают свои люди — «Где нужнее» сами идут туда, где есть работа. В меню сотрудника можно выбрать этаж'],
  ['v54','🏦 кредит, если кончились деньги · 💡 подсказки можно выключить · совет «нужны стеллажи», когда склад забит · исправлен значок в сообщениях'],
  ['v53','📢 «Поторопить всех» (нужен стол начальника) · 👋 «Отпустить лишний аутсорс» одной кнопкой · люди говорят настоящую причину простоя'],
@@ -1374,7 +1375,7 @@ function build(type,x,y){if(type==='gate')return buildGate(y,x);
   const b=BUILD[type];
   if(money<b.c)return toast('Не хватает денег',1.5);
   if(type==='desk'&&OB('desk').length)return toast('Стол начальника уже есть',1.5);
-  if(!canPlace(type,viewF,x,y))return toast(viewF>0&&type!=='rack'?'На этажах — только стеллажи':'Тут нельзя — перекроешь проход',1.5);
+  if(!canPlace(type,viewF,x,y))return toast((type==='lift'||type==='stairs')?'Сюда нельзя: клетка должна быть свободна на ВСЕХ этажах и не перекрывать проход':viewF>0&&type!=='rack'?'На этажах — только стеллажи':'Тут нельзя — перекроешь проход',1.5);
   money-=b.c;click2();
   if(type==='lift'){lifts.push({x,y});setMode('norm');toast(stairs.length?'🔼 Грузовой лифт готов — повезёт товар между этажами':'🔼 Лифт готов! Поставь ещё лестницу — людям не придётся ждать лифт',4);}
   else if(type==='stairs'){stairs.push({x,y});setMode('norm');toast('Лестница готова — люди ходят по ней',3);}
@@ -1397,6 +1398,10 @@ function canDel(o){
     case 'press':return (o.n||o.res)?'В прессе мусор':'';
   }return '';
 }
+function showConnPop(x,y,ct,e){const el=document.getElementById('wpop');popW=null;
+  el.innerHTML=`<b>${ct==='lift'?'🔼 Грузовой лифт':'Лестница'}</b><small>${ct==='lift'?'возит товар между этажами':'люди ходят между этажами'}</small>
+  <button onclick="hideWPop();delConn(${x},${y},'${ct}',true)">↔ Переместить</button><button onclick="hideWPop();delConn(${x},${y},'${ct}',false)">❌ Снести (½ цены)</button><button onclick="hideWPop()">✖ Закрыть</button>`;
+  el.style.display='flex';placePop(el,e.clientX+10,e.clientY-20);}
 function delConn(x,y,type,mv){const A=type==='lift'?lifts:stairs;
   if(type==='lift'&&lifts.length===1&&!mv&&OB('rack').some(r=>r.f>0))return toast('Это единственный грузовой лифт, а наверху стеллажи. Перенеси его (↔) или поставь другой',3.5);
   if([...workers,player].some(w=>w&&w.cur&&w.cur.cn&&w.cur.cn.x===x&&w.cur.cn.y===y&&w.cur.ride!=null))return toast('Сейчас там кто-то едет — подожди секунду',2);
@@ -1747,7 +1752,7 @@ cv.addEventListener('pointerup',e=>{const d=pDown;pDown=null;if(selRect){const r
     if(o&&(d.add||moveSel.includes(o)||(moveSel.length&&!groupOk(x,y,viewF)&&!canMoveObj(o))))startMove(o,true);
     else if(moveSel.length)finishMove(x,y);else if(o)startMove(o);}
   else if(mode!=='norm')build(mode,x,y);
-  else{if(hoverW&&!hoverW.isPlayer){showWPop(hoverW,e);return;}hideWPop();const o=objAt(viewF,x,y);if(o&&d.add&&!canMoveObj(o)){startMove(o,true);return;}if(o)showOPop(o,e);}});
+  else{if(hoverW&&!hoverW.isPlayer){showWPop(hoverW,e);return;}hideWPop();const o=objAt(viewF,x,y);if(o&&d.add&&!canMoveObj(o)){startMove(o,true);return;}if(o)showOPop(o,e);else{const ct=connAt(x,y);if(ct)showConnPop(x,y,ct,e);}}});
 cv.addEventListener('pointercancel',()=>pDown=null);
 // щипок двумя пальцами — приближение
 let pinch=null;const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
@@ -1831,7 +1836,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v55'} — отчёт`,
+  return [`СкладМастер ${'v56'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
