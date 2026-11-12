@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v71</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v72</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -102,7 +102,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="infoOpen('ppl')" title="Найти сотрудника">👥 Люди</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v71</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v72</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -119,7 +119,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v71</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v72</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
@@ -128,7 +128,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button class="mobMenu" style="display:none" onclick="closeMenu();openAdBox()">📺 Бонус за рекламу</button>
   <button class="mobMenu" style="display:none" onclick="closeMenu();openNetUI()">🏙 Мои склады</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v71</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v72</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -583,7 +583,7 @@ function autoThink(w){
     load:OB('dock').filter(o=>o.p&&!o.p.res).length*3+(kgtCan(w)?OW('kgtin').reduce((a,o)=>a+o.n-o.res,0)*3+kgtOrd*4:0)+(objs.reduce((a,o)=>a+(o.trash||0),0)>=4?2:0)+(OW('press').some(o=>o.n>=6)?3:0),
     sort:OW('retz').reduce((a,o)=>a+o.box.length*2,0)+OS('recv').reduce((a,o)=>a+(o.p&&o.p.acc&&!o.p.res?Math.max(0,Math.min(3-(o.p.sr||0),o.p.boxes.length-(o.p.sr||0)))*3:0),0),
     put:OS('table').reduce((a,o)=>a+o.n.reduce((x,v,i)=>x+v-o.out[i],0),0)+OB('rack').filter(r=>r.off&&r.unload).reduce((a,r)=>a+r.cells.filter(v=>v!==null).length,0),
-    pick:OS('cage').reduce((a,c)=>a+(c.o?c.o.items.filter(i=>i.st==='w').length*2:0)+(c.ready&&!c.sres?5:0),0)+(valOrd>0&&wStars(w)>=4?valOrd*4:0)+cargo.filter(c=>c.kind==='pick'&&c.f===0&&c.eta<=0&&!c.res).length*3};
+    pick:OS('cage').reduce((a,c)=>a+(c.o?c.o.items.filter(i=>i.st==='w').length*2:0)+(c.ready&&!c.sres?5:0),0)+(vans.some(v=>v.st==='load')?outQ.filter(q=>!q.res&&q.sh).length*6:0)+(valOrd>0&&wStars(w)>=4?valOrd*4:0)+cargo.filter(c=>c.kind==='pick'&&c.f===0&&c.eta<=0&&!c.res).length*3};
   for(const r of Object.keys(sc).sort((a,b)=>sc[b]-sc[a])){if(sc[r]<=0)break;TF[r](w);if(w.q.length){w.doing=r;return;}}
   w.doing=null;autoFloor(w);
 }
@@ -607,6 +607,13 @@ function tRecv(w){
   if(isErr(w))w.q.push(oops(w),act('scan',1.4,0,null,to));
   w.q.push(fn(()=>{p.acc=true;p.res=null;ds.pallets++;earn(p.boxes.length*15,w.px,w.py-30);}));
 }
+const VG={x:0,y:11};
+function tVan(w){const v=vans.find(v=>v.st==='load'&&v.load.length+outQ.filter(q=>q.rv===v).length<VAN[v.k].cap);if(!v)return false;
+  const q=outQ.find(q=>!q.res&&q.sh&&!q.took);if(!q)return false;const sh=objs.find(o=>o.id===q.sh);if(!sh)return false;q.res=w.id;q.rv=v;
+  const gate={x:VG.x,y:VG.y,f:0};
+  w.q.push(goN(sh),act('lift',0.5,0,null,{to:sh,box:'ord'}),fn(()=>{q.took=true;sh.n=Math.max(0,sh.n-1);w.carry='ord';}),
+    {k:'go',f:0,o:gate,goal:(x,y)=>x===0&&y>=10&&y<=12},act('place',0.5,0,null,{to:{x:-1,y:11,f:0}}),fn(()=>{w.carry=null;const i=outQ.indexOf(q);if(i>=0)outQ.splice(i,1);
+      if(v.st==='load'&&v.load.length<VAN[v.k].cap)v.load.push(q);else{outQ.unshift(q);q.res=null;q.rv=null;}if(Math.random()<0.3)say(w,'Погрузил в газель!',1.2);}));return true;}
 function tShip(w){const cg=nearest(OB('cage').filter(c=>c.ready&&c.o&&!c.sres),wpos(w));if(!cg)return false;
   const sh=nearest(OW('ship').filter(o=>o.n+o.inc<4),cg);if(!sh)return false;cg.sres=w.id;sh.inc++;let oo=null;
   w.q.push(goN(cg),act('lift',0.6,0,null,{to:cg,box:'ord'}),fn(()=>{oo=cg.o;cg.o=null;cg.ready=false;cg.sres=null;w.carry='ord';}),
@@ -697,7 +704,7 @@ function tRackUnload(w){
 function tPutAll(w){tPut(w);if(!w.q.length)tRackUnload(w);}
 function tPick(w){const F=w.f;
   if(invT>0)return;
-  if(F===0&&(tShip(w)||tVal(w)))return;
+  if(F===0&&(tVan(w)||tShip(w)||tVal(w)))return;
   if(F===0){const k=cargo.find(c=>c.kind==='pick'&&c.f===0&&c.eta<=0&&!c.res),L=k&&nearConn(w.tx,w.ty,true);
     if(k&&L){k.res=w.id;const lo={x:L.x,y:L.y,f:0},cg=k.cg,it=k.it;
       w.q.push(goN(lo),act('take',0.5,0,null,{to:lo,box:k.t}),fn(()=>{const i=cargo.indexOf(k);if(i>=0)cargo.splice(i,1);w.carry=k.t;}),
@@ -752,7 +759,7 @@ function movePal(w,from,to){
 }
 function finishPress(o,w){o.on=false;o.n-=6;o.res=null;o.bales++;ds.bales++;st.bales=(st.bales||0)+1;earn(150,w.px,w.py-30);float(w.px,w.py-44,'тюк продан','#fff');}
 function tLoad(w){
-  if(w.f===0&&(tShip(w)||tKgt(w)||tVal(w)))return;
+  if(w.f===0&&(tVan(w)||tShip(w)||tKgt(w)||tVal(w)))return;
   const d=[...OB('dock'),...OB('pfloor')].find(o=>o.p&&!o.p.res&&!(o.p.acc&&!o.p.boxes.length)),r=nearest(OW('recv').filter(o=>!o.p&&!o.r),wpos(w));
   if(d&&r&&movePal(w,d,r))return;
   const st=OW('stack');
@@ -911,6 +918,7 @@ function dropSpot(P){
 }
 function playerAct(){
   const P=player;if(P.cur||P.q.length)return;
+  if(P.carry==='ord'&&P.vanQ&&P.f===0&&P.tx<=1&&P.ty>=9&&P.ty<=13){const q=P.vanQ,v=vans.find(v=>v.st==='load');P.q.push(act('place',0.4,0,null,{to:{x:-1,y:P.ty,f:0}}),fn(()=>{P.carry=null;P.vanQ=null;const i=outQ.indexOf(q);if(i>=0)outQ.splice(i,1);if(v&&v.load.length<VAN[v.k].cap)v.load.push(q);else{outQ.unshift(q);q.res=null;}toast('🚐 Заказ в газели! Она отвезёт его в ПВЗ — там тебе заплатят',3);}));return;}
   const [ddx,ddy]=P.dir,order=[[ddx,ddy],...DIRS.filter(d=>!(d[0]===ddx&&d[1]===ddy))],cand=[];
   for(const [dx,dy] of order){const x=P.tx+dx,y=P.ty+dy;if(isLift(x,y))cand.push({type:'lift',x,y,f:P.f});const o=objAt(P.f,x,y);if(o)cand.push(o);}
   P.fail=null;hideChoice();
@@ -1000,7 +1008,8 @@ function takeTrash(P,o){if(P.jack){P.fail='FREE';return;}o.tres='P';P.q.push(act
 function tryAct(P,o){
   const to={to:o},box=P.carry;
   if(box==='ord'&&o.type!=='ship')return false;
-  if(o.type==='ship'){if(box==='ord'&&o.n+o.inc<4){const oo=P.ordO;P.q.push(act('place',0.4,0,null,to),fn(()=>{P.carry=null;P.ordO=null;o.n++;if(oo)outQ.push({mis:oo.items.filter(i=>i.mis).length,n:oo.items.length,exp:oo.exp,dl:oo.dl,t0:oo.t0,sh:o.id});}));return true;}return false;}
+  if(o.type==='ship'&&box==null&&!P.pallet&&vans.some(v=>v.st==='load')){const q=outQ.find(q=>!q.res&&q.sh===o.id&&!q.took);if(q){q.res='P';P.q.push(act('lift',0.4,0,null,{to:o,box:'ord'}),fn(()=>{q.took=true;o.n=Math.max(0,o.n-1);P.carry='ord';P.vanQ=q;}));toast('Неси к газели — к «воротам в ПВЗ» слева, нажми E',2.5);return true;}}
+  if(o.type==='ship'){if(box==='ord'&&!P.vanQ&&o.n+o.inc<4){const oo=P.ordO;P.q.push(act('place',0.4,0,null,to),fn(()=>{P.carry=null;P.ordO=null;o.n++;if(oo)outQ.push({mis:oo.items.filter(i=>i.mis).length,n:oo.items.length,exp:oo.exp,dl:oo.dl,t0:oo.t0,sh:o.id});}));return true;}return false;}
   if(o.type==='cage'&&o.ready&&o.o&&!o.sres&&box==null&&!P.pallet){o.sres='P';P.q.push(act('lift',0.5,0,null,{to:o,box:'ord'}),fn(()=>{P.ordO=o.o;o.o=null;o.ready=false;o.sres=null;P.carry='ord';}));return true;}
   if(P.pallet){const p=P.pallet;
     if(o.type==='recv'&&!o.p&&!o.r){P.q.push(act('hook',0.4,0,()=>{o.p=p;P.pallet=null;},to));return true;}
@@ -1110,8 +1119,12 @@ function vanStep(dt){syncVans();
   const order=vans.slice().sort((a,b)=>(a.k==='own'?0:1)-(b.k==='own'?0:1));
   for(const v of order){const P=VAN[v.k];
     if(v.st==='idle'&&outQ.length){v.st='load';v.t=0;}
-    if(v.st==='load'){v.t+=dt;while(v.load.length<P.cap&&outQ.length){const q=outQ.shift();if(q.sh){const so=objs.find(o=>o.id===q.sh);if(so)so.n=Math.max(0,so.n-1);}v.load.push(q);}
-      if(v.load.length>=P.cap||v.t>10){v.st='out';v.t=P.trip;if(v.k==='rent'){const c=P.cost*v.load.reduce((a,o)=>a+o.n,0);money-=c;dayInc-=c;}van=1;}}
+    if(v.st==='load'){v.t+=dt;const free=outQ.filter(q=>!q.res),pend=outQ.some(q=>q.res&&q.rv===v);
+      const helpers=OB('ship').length&&workers.some(w=>!w.absent&&['load','pick','auto'].includes(w.role));
+      if(!OB('ship').length){while(v.load.length<P.cap&&outQ.length)v.load.push(outQ.shift());}
+      else if(v.t>(helpers?7:1.5)){v.dt=(v.dt||0)+dt;if(v.dt>1.6&&free.length&&v.load.length<P.cap){v.dt=0;const q=free[0];outQ.splice(outQ.indexOf(q),1);if(q.sh&&!q.took){const so=objs.find(o=>o.id===q.sh);if(so)so.n=Math.max(0,so.n-1);}v.load.push(q);float(-ROAD*T/2,10*T,'🧑‍✈️ водитель грузит сам','#ccc');}}
+      if(!v.load.length&&!outQ.length&&!pend){v.st='idle';continue;}
+      if(v.load.length>=P.cap||(v.t>(helpers?16:6)&&!pend&&v.load.length)){v.st='out';v.t=P.trip;if(v.k==='rent'){const c=P.cost*v.load.reduce((a,o)=>a+o.n,0);money-=c;dayInc-=c;}van=1;}}
     else if(v.st==='out'){v.t-=dt;if(v.t<=0){v.load.forEach(deliver);if(v.load.length&&AC)chime();v.load=[];v.st='back';v.t=P.back;}}
     else if(v.st==='back'){v.t-=dt;if(v.t<=0)v.st='idle';}}}
 function vanInfo(){const own=vans.filter(v=>v.k==='own'),rent=vans.filter(v=>v.k==='rent'),way=vans.filter(v=>v.st==='out'||v.st==='back').length;
@@ -1364,6 +1377,7 @@ function renderAch(){achLoad();const cur=diffN();if(!achTab)achTab=cur;const A=a
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${Math.round(a[5]*(0.75+0.25*achTab))} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v72','🚐 газель грузят люди: берут заказ с зоны отгрузки и несут к воротам в ПВЗ (нет людей — водитель грузит сам) · 📘 обучение: первый заказ — 1 коробка, видна вся цепочка, не надо ждать доставку'],
  ['v71','🌙 круглосуточная работа: после дневной смены заступает ночная (свои люди ☀/🌙) · 🧑‍💼 Кабинет по вкладкам: Люди, Оплата, Режим, План, Развитие · кнопки −/+ больше не дёргают окно'],
  ['v70','💵 ставка за операцию от 0,1 р. — вводи любую, отдельно штату и аутсорсу'],
  ['v69','💵 гибкая оплата: штат и аутсорс — оклад/смена или только сдельно, ставки настраиваешь сам (от 5 р. за операцию, смена от 300 р.). Нет работы — нет зарплаты'],
@@ -1540,10 +1554,10 @@ function step(dt){
      if(tr.st==='in'){tr.t+=dt;tr.y=-200+200*Math.min(1,tr.t/1.5);if(tr.t>=1.5){tr.st='unl';tr.t=0;OB('stack').forEach(s=>s.n=0);}}
      else if(tr.st==='unl'){tr.t+=dt;if(tr.k<2&&tr.t>0.8*(tr.k+1)){const s=docks.find(s=>!s.p);if(s)s.p=newPallet();tr.k++;}if(tr.t>2.6)tr.st='out';}
      else if(tr.st==='out'){tr.y+=dt*220;if(tr.y>GH*T){tr.st='away';tr.y=-200;}}}}
-  orderT+=dt;if(orderT>=7/(pvz*ordMul())){orderT=0;if(pending.length<12){const n=1+Math.floor(Math.random()*3);
+  orderT+=dt;if(orderT>=7/(pvz*ordMul())){orderT=0;if(pending.length<12){const tut=tutStep<TUT.length&&totalShip<2;const n=tut?1:1+Math.floor(Math.random()*3);
     const fr=[0,1,2].map(t=>Math.max(0,availCount(t)-demandOf(t))),items=[];
     for(let k=0;k<n;k++){const tot=fr[0]+fr[1]+fr[2];if(tot<=0)break;let r=Math.random()*tot,t=0;for(;t<3;t++){r-=fr[t];if(r<0)break;}t=Math.min(t,2);fr[t]--;items.push({t,st:'w'});}
-    if(items.length){const ex=newOrderExp();pending.push({items,t0:gT,exp:ex,dl:ex?gT+95+15*items.length:0});}}}
+    if(items.length){const ex=tut?false:newOrderExp();pending.push({items,t0:gT,exp:ex,dl:ex?gT+95+15*items.length:0});}}}
   for(const cg of OB('cage')){
     if(cg.ready&&!cg.o)cg.ready=false;
     if(!cg.o&&pending.length&&!cg.off){const ei=pending.findIndex(o=>o.exp);cg.o=ei>=0?pending.splice(ei,1)[0]:pending.shift();cg.done=0;cg.starve=0;}
@@ -1905,7 +1919,7 @@ function drawTruck1(y,R){const w=ROAD*T-8,x=R?GW*T+8:-ROAD*T+4;
   ctx.fillStyle='#111';[[0.15,-2],[0.15,T*2.6],[0.6,-6],[0.6,T*3-4],[0.85,-6],[0.85,T*3-4]].forEach(([a,b2])=>{const aa=R?1-a:a;ctx.fillRect(x+w*aa-4,y+b2-2,8,5);});}
 function drawVan(){const idle=vans.filter(v=>v.st==='idle'||v.st==='load').length,ld=vans.find(v=>v.st==='load');const x=-ROAD*T+8,y=10*T-6+(van>0?Math.sin(van*20)*2:0),w=ROAD*T-14;
   if(!idle){txt('🚐 все в пути',-ROAD*T/2,11*T,'#ccc',10,'center');return;}
-  rr(x,y,w*0.3,T*2.2,'#eee');rr(x+3,y+6,w*0.3-6,14,'#9cf');rr(x+w*0.3,y-2,w*0.7,T*2.6,'#f5f5f5');txt('В ПВЗ',x+w*0.4,y+T*1.3,'#1a6',11);txt('🚐×'+idle+(ld?' · грузят '+ld.load.length:''),x+w/2,y+T*2.9,'#fff',10,'center');}
+  rr(x,y,w*0.3,T*2.2,'#eee');rr(x+3,y+6,w*0.3-6,14,'#9cf');rr(x+w*0.3,y-2,w*0.7,T*2.6,'#f5f5f5');txt('В ПВЗ',x+w*0.4,y+T*1.3,'#1a6',11);txt('🚐×'+idle+(ld?' · грузят '+ld.load.length:''),x+w/2,y+T*2.9,'#fff',10,'center');if(ld&&outQ.length)txt('⬅ погрузка',T*0.9,11*T+20,'#f2c230',10,'center');}
 function draw(){
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#1b1f27';ctx.fillRect(0,0,cv.width,cv.height);
   if(!started)return;
@@ -2169,7 +2183,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v71'} — отчёт`,
+  return [`СкладМастер ${'v72'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -2373,8 +2387,10 @@ const TUT=[
  {t:'Поставь <b>2 Стеллажа</b> (кнопка 🗄). Ставь рядом друг с другом, но не загораживай проходы!',ok:()=>OB('rack').length>=2,cnt:()=>[OB('rack').length,2]},
  {t:'Размещение: возьми коробку со стола (<b>E</b>) и положи на стеллаж (<b>E</b>).',ok:()=>OB('rack').some(r=>r.cells.some(v=>v!==null))||st.pCage>0||totalShip>0,hl:()=>OB('rack')},
  {t:'Поставь <b>1 Клетку заказа</b> (кнопка <svg viewBox="0 0 20 20" width="1.1em" height="1.1em" style="vertical-align:-0.2em"><rect x="3" y="2" width="14" height="13" fill="none" stroke="#9fb3c8" stroke-width="1.6"/><path d="M6.5 2v13M10 2v13M13.5 2v13M3 6.5h14M3 11h14" stroke="#9fb3c8" stroke-width="1"/><rect x="5" y="8" width="5" height="3" fill="#d9a066"/><circle cx="5" cy="17.5" r="1.6" fill="#555"/><circle cx="15" cy="17.5" r="1.6" fill="#555"/></svg>) — туда собирают заказы для ПВЗ. Лучше ближе к воротам в ПВЗ.',ok:()=>OB('cage').length>=1,cnt:()=>[OB('cage').length,1]},
- {t:'Подбор: над клеткой видно, какие цвета нужны. Возьми коробку нужного цвета (со стеллажа, стола или прямо с поддона) и положи в клетку (<b>E</b>).',ok:()=>st.pCage>0||totalShip>0,hl:()=>OB('cage')},
- {t:'Отлично! Собери заказ целиком. Потом нажми <b>E</b> у клетки — возьмёшь заказ — и отнеси в жёлтую <b>зону отгрузки 🚚</b> (E). Газель увезёт его в ПВЗ, и тебе заплатят.',ok:()=>totalShip>0,hl:()=>OB('cage').some(c=>c.ready)||player.carry==='ord'?OB('ship'):OB('cage')},
+ {t:'Подбор: над клеткой видно, какой цвет нужен (первый заказ — всего 1 коробка). Возьми коробку нужного цвета (со стеллажа, стола или прямо с поддона) и положи в клетку (<b>E</b>).',ok:()=>st.pCage>0||totalShip>0,hl:()=>OB('cage')},
+ {t:'Заказ собран! Нажми <b>E</b> у клетки — возьмёшь заказ — и отнеси на жёлтый поддон <b>зоны отгрузки 🚚</b> (E).',ok:()=>OB('ship').some(o=>o.n>0)||outQ.length>0||vans.some(v=>v.load.length)||totalShip>0,hl:()=>OB('cage').some(c=>c.ready)||player.carry==='ord'?OB('ship'):OB('cage')},
+ {t:'🚐 Газель подъехала к «воротам в ПВЗ» (слева). Возьми заказ с зоны отгрузки (<b>E</b>), поднеси к воротам и нажми <b>E</b> — погрузишь. (Если не успеешь — водитель погрузит сам.)',ok:()=>vans.some(v=>v.load.length||v.st==='out')||totalShip>0,hl:()=>player.carry==='ord'?[]:OB('ship')},
+ {t:'Газель везёт заказ в ПВЗ. Когда доедет — тебе заплатят. Пока собирай следующий заказ! Чем быстрее клиент получит заказ — тем выше рейтинг ⭐.',ok:()=>totalShip>0},
  {t:'Мусор (плёнка и картон) копится и тормозит работу. Поставь <b>1 Пресс</b> (🗜). Мусор носи в пресс (<b>E</b>), при 6/6 нажми у пресса <b>E</b> — получишь тюк.',ok:()=>OB('press').length>=1,cnt:()=>[OB('press').length,1]},
  {t:'Устал работать один? Открой <b>🧑‍💼 Кабинет</b> и пригласи <b>1 сотрудника</b>: выбери работу, график и зарплату. Или возьми аутсорсера.',ok:()=>workers.length>=1,cnt:()=>[workers.length,1]},
  {t:'Кликни по своему сотруднику на складе — можно сразу указать, где ему работать. Дальше расширяй склад, покупай этажи и ПВЗ. Удачи!',ok:()=>false,last:true}
