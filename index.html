@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v50</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v51</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v50</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v51</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v50</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v51</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v50</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v51</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -1096,6 +1096,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v51','🤏 приближение щипком двумя пальцами на телефоне'],
  ['v50','📱 на телефоне вверху кнопка 🚦 со светофором этапов — нажми, откроется окно склада · справа разделы свёрнуты, кроме важных, есть «Свернуть всё»'],
  ['v49','🚚 фур больше при большем числе ворот · 😴 счётчик «Без дела» в узких местах · подсказки, почему приёмка ждёт'],
  ['v48','клетка заказа теперь нарисована как настоящая решётчатая тележка'],
@@ -1681,6 +1682,11 @@ cv.addEventListener('pointerup',e=>{const d=pDown;pDown=null;if(selRect){const r
   else if(mode!=='norm')build(mode,x,y);
   else{if(hoverW&&!hoverW.isPlayer){showWPop(hoverW,e);return;}hideWPop();const o=objAt(viewF,x,y);if(o&&d.add&&!canMoveObj(o)){startMove(o,true);return;}if(o)showOPop(o,e);}});
 cv.addEventListener('pointercancel',()=>pDown=null);
+// щипок двумя пальцами — приближение
+let pinch=null;const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+cv.addEventListener('touchstart',e=>{if(e.touches.length===2){pinch={d:tdist(e.touches),z:settings.zoom>0?settings.zoom:Math.round(VS/fitS*100)||100};pDown=null;selRect=null;e.preventDefault();}},{passive:false});
+cv.addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();pDown=null;const k=tdist(e.touches)/Math.max(1,pinch.d);setZoom(pinch.z*k);camFree=true;}},{passive:false});
+cv.addEventListener('touchend',e=>{if(pinch&&e.touches.length<2){pinch=null;pDown=null;}});
 cv.addEventListener('wheel',e=>{e.preventDefault();setZoom((settings.zoom||100)*(e.deltaY<0?1.1:1/1.1));},{passive:false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 
@@ -1758,7 +1764,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v50'} — отчёт`,
+  return [`СкладМастер ${'v51'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
