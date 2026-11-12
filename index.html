@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v51</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v52</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -98,7 +98,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="toggleFS()" class="fsBtn" title="На весь экран">⛶</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v51</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v52</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -115,14 +115,14 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v51</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v52</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
   <button id="mSet">⚙ Настройки</button>
   <button onclick="infoOpen('ach')">🏆 Достижения</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v51</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v52</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -458,7 +458,8 @@ function upd(w,dt){
     if(w.absPend){w.absent=true;w.absPend=false;return;}
     if(w.breakPend){if(w.jack&&!w.pallet&&jackBack(w))return;w.breakPend=false;say(w,'Иду на перерыв ☕',2);
       w.q.push({k:'go',f:0,o:DOOR,goal:(x,y)=>x===DOOR.x&&y===DOOR.y},fn(()=>{w.onBreak=true;w.hidden=true;w.why='☕ На перерыве';}));return;}
-    think(w);
+    if((w.thinkCD=(w.thinkCD||0)-dt)>0&&w.why)return;
+    think(w);if(!w.q.length)w.thinkCD=0.4+Math.random()*0.4;
     if(w.q.length){w.jobs=(w.jobs||0)+1;if(!w.out)w.ops=(w.ops||0)+1;}
     if(!w.q.length&&w.jack&&w.carry==null&&!w.pallet&&jackBack(w)){w.why=null;return;}
     if(!w.q.length){w.pose=w.carry!=null?'carry':'idle';w.moving=false;let wy=whyIdle(w.role);if(wy==='RECV')wy=whyRecv(w);if(w.jackWait&&jackQ.includes(w.id))wy=`Жду свободную рохлю (я ${jackQ.indexOf(w.id)+1}-й в очереди)`;setWhy(w,wy);return;}
@@ -487,7 +488,7 @@ function autoThink(w){
   const sc={recv:OS('recv').filter(o=>o.p&&!o.p.acc&&!o.p.res).length*3,
     press:(OW('press').length?objs.reduce((a,o)=>a+(o.trash||0),0)+(OW('press').some(o=>o.n>=6)?6:0):0),
     load:OB('dock').filter(o=>o.p&&!o.p.res).length*3+(objs.reduce((a,o)=>a+(o.trash||0),0)>=4?2:0)+(OW('press').some(o=>o.n>=6)?3:0),
-    sort:OS('recv').reduce((a,o)=>a+(o.p&&o.p.acc&&!o.p.res?o.p.boxes.length:0),0),
+    sort:OS('recv').reduce((a,o)=>a+(o.p&&o.p.acc&&!o.p.res?Math.max(0,Math.min(3-(o.p.sr||0),o.p.boxes.length-(o.p.sr||0)))*3:0),0),
     put:OS('table').reduce((a,o)=>a+o.n.reduce((x,v,i)=>x+v-o.out[i],0),0)+OB('rack').filter(r=>r.off&&r.unload).reduce((a,r)=>a+r.cells.filter(v=>v!==null).length,0),
     pick:OS('cage').reduce((a,c)=>a+(c.o?c.o.items.filter(i=>i.st==='w').length*2:0),0)};
   for(const r of Object.keys(sc).sort((a,b)=>sc[b]-sc[a])){if(sc[r]<=0)break;TF[r](w);if(w.q.length){w.doing=r;return;}}
@@ -517,11 +518,11 @@ function tSort(w){
   const fb=nearest(OB('bfloor').filter(o=>!o.res&&OW('table').some(tb=>tb.n[o.t]+tb.inc[o.t]<CAP)),wpos(w));
   if(fb){const t=fb.t,tb=nearest(OW('table').filter(o=>o.n[t]+o.inc[t]<CAP),fb);fb.res=w.id;tb.inc[t]++;
     w.q.push(goN(fb),act('lift',0.55,0,null,{to:fb,box:t}),fn(()=>{delObj(fb);w.carry=t;}),goN(tb),act('scan',0.4,0,null,{to:tb}),act('place',0.4,0,null,{to:tb}),fn(()=>{w.carry=null;tb.inc[t]--;tb.n[t]++;}));return;}
-  for(const s of byNear(OS('recv').filter(o=>o.p&&o.p.acc&&!o.p.res&&o.p.boxes.length),wpos(w))){
-    const p=s.p,t=p.boxes[p.boxes.length-1];
+  for(const s of byNear(OS('recv').filter(o=>o.p&&o.p.acc&&!o.p.res&&o.p.boxes.length>(o.p.sr||0)&&(o.p.sr||0)<3),wpos(w))){
+    const p=s.p,t=p.boxes[p.boxes.length-1-(p.sr||0)];
     const tb=nearest(OW('table').filter(o=>o.n[t]+o.inc[t]<CAP),s);if(!tb)continue;
-    p.res=w.id;tb.inc[t]++;
-    w.q.push(goN(s),act('lift',0.55,0,null,{to:s,box:t}),fn(()=>{p.boxes.pop();p.res=null;w.carry=t;}),
+    p.sr=(p.sr||0)+1;tb.inc[t]++;
+    w.q.push(goN(s),act('lift',0.55,0,null,{to:s,box:t}),fn(()=>{const i=p.boxes.lastIndexOf(t);if(i>=0)p.boxes.splice(i,1);p.sr=Math.max(0,(p.sr||1)-1);w.carry=t;}),
       goN(tb),act('scan',0.4,0,null,{to:tb}));
     if(isErr(w))w.q.push(oops(w),act('scan',1.2,0,null,{to:tb}));
     w.q.push(act('place',0.4,0,null,{to:tb}),fn(()=>{w.carry=null;tb.inc[t]--;tb.n[t]++;cbCount++;if(cbCount%(isEasy()?6:3)===0)tb.trash++;}));
@@ -604,7 +605,7 @@ function tLoad(w){
   const d=[...OB('dock'),...OB('pfloor')].find(o=>o.p&&!o.p.res&&!(o.p.acc&&!o.p.boxes.length)),r=nearest(OW('recv').filter(o=>!o.p&&!o.r),wpos(w));
   if(d&&r&&movePal(w,d,r))return;
   const st=OW('stack');
-  if(st.length){const e=nearest([...OS('recv'),...OB('pfloor')].filter(o=>o.p&&o.p.acc&&!o.p.boxes.length&&!o.p.res),wpos(w));if(e&&movePal(w,e,nearest(st,e)))return;}
+  if(st.length){const e=nearest([...OS('recv'),...OB('pfloor')].filter(o=>o.p&&o.p.acc&&!o.p.boxes.length&&!o.p.res&&!o.p.sr),wpos(w));if(e&&movePal(w,e,nearest(st,e)))return;}
   const jb=OB('jackbox').find(o=>!o.res);
   if(jb&&!w.jack&&OW('jackpark').some(o=>o.n+o.inc<JACK_CAP)){jb.res=w.id;w.q.push(goN(jb),act('cut',1.5,0,()=>{delObj(jb);w.jack=true;},{to:jb}));return;}
   if(w.jack)return;
@@ -1096,6 +1097,7 @@ function renderAch(){const n=ACH.filter(a=>ach[a[0]]).length;
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${a[5]} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v52','⚡ игра быстрее при 200+ людях · 🧮 с одного поддона сортируют до 3 человек сразу · 📋 в отчёте видно, почему люди стоят'],
  ['v51','🤏 приближение щипком двумя пальцами на телефоне'],
  ['v50','📱 на телефоне вверху кнопка 🚦 со светофором этапов — нажми, откроется окно склада · справа разделы свёрнуты, кроме важных, есть «Свернуть всё»'],
  ['v49','🚚 фур больше при большем числе ворот · 😴 счётчик «Без дела» в узких местах · подсказки, почему приёмка ждёт'],
@@ -1540,9 +1542,10 @@ function draw(){
   drawLift();
   const ds=[];
   for(const o of objs)if(o.f===f&&o.p)ds.push({y:o.y*T+T/2,d:()=>drawPalletTop(o.x*T+T/2,o.y*T+T/2,o.p)});
-  for(const w of [...workers,player])if(w.f===f&&!w.absent&&!w.hidden)ds.push({y:w.py,d:()=>drawPerson(w)});
+  const inV=w=>{const sx=OX+(w.px+ROAD*T)*VS,sy=OY+w.py*VS;return sx>-80&&sx<cv.width+80&&sy>-80&&sy<cv.height+80;};
+  for(const w of [...workers,player])if(w.f===f&&!w.absent&&!w.hidden&&(w===player||inV(w)))ds.push({y:w.py,d:()=>drawPerson(w)});
   ds.sort((a,b)=>a.y-b.y).forEach(o=>o.d());
-  for(const w of workers)if(w.f===f&&!w.absent&&!w.hidden)drawSay(w);
+  for(const w of workers)if(w.f===f&&!w.absent&&!w.hidden&&inV(w))drawSay(w);
   if(hover&&mode!=='norm'){const [hx,hy]=hover;if(hx>=0&&hy>=0&&hx<GW&&hy<GH){
     if(mode==='move'&&moveSel.length&&!selRect){const ok=groupOk(hx,hy,f);ctx.fillStyle=ok?'rgba(0,255,0,.3)':'rgba(255,0,0,.3)';for(const p of groupPlan(hx,hy,f))ctx.fillRect(p.x*T,p.y*T,T,T);}
     else if(!selRect){const ok=mode==='del'?!!objAt(f,hx,hy):mode==='move'?!!objAt(f,hx,hy):canPlace(mode,f,hx,hy);ctx.fillStyle=ok?'rgba(0,255,0,.3)':'rgba(255,0,0,.3)';ctx.fillRect(hx*T,hy*T,T,T);}}}
@@ -1764,7 +1767,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v51'} — отчёт`,
+  return [`СкладМастер ${'v52'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -1776,6 +1779,10 @@ function makeReport(){
    `Рохлей: ${jacksTotal()} · мусор сейчас: ${objs.reduce((a,o)=>a+(o.trash||0),0)} · заказов в очереди: ${pending.length}`,
    `По дням: ${hist.map(h=>`д${h.d}: +${h.inc} р., ${h.ship} тов.`).join(' | ')||'—'}`,
    `Экран: ${innerWidth}×${innerHeight}${isMob?' (телефон)':''}`,
+   `Сейчас (узкие места): ${Object.keys(bn).map(k=>BN_N[k].replace(/<svg.*?<\/svg>/,'🛒')+' '+['🟢','🟡','🔴'][bnLevel(k,bn[k])]+' '+Math.round(bn[k])).join(' · ')}`,
+   (()=>{const a=workers.filter(w=>!w.absent&&!w.hidden&&!w.onBreak),idle=a.filter(w=>!w.q.length&&!w.cur);const why={};for(const w of idle){const k=(w.why||'—').replace(/№\d+/g,'№');why[k]=(why[k]||0)+1;}
+     return `Без дела: ${idle.length} из ${a.length}. Почему: `+Object.entries(why).sort((x,y)=>y[1]-x[1]).slice(0,6).map(([k,v])=>`«${k}» ×${v}`).join('; ');})(),
+   `Поддоны: у ворот ${OB('dock').filter(o=>o.p).length} · на приёмке ${OB('recv').filter(o=>o.p).length} (не принято ${OB('recv').filter(o=>o.p&&!o.p.acc).length}, ждут сортировки ${OB('recv').filter(o=>o.p&&o.p.acc&&o.p.boxes.length).length}, пустых ${OB('recv').filter(o=>o.p&&o.p.acc&&!o.p.boxes.length).length}) · свободных мест приёмки ${OB('recv').filter(o=>!o.p).length}`,
    ``,`Мои впечатления: `].join('\n');
 }
 document.getElementById('mRep').onclick=()=>{document.getElementById('repTxt').value=makeReport();document.getElementById('repBox').style.display='flex';};
