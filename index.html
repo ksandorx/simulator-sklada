@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v68</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v69</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -102,7 +102,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="infoOpen('ppl')" title="Найти сотрудника">👥 Люди</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v68</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v69</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -119,7 +119,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v68</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v69</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
@@ -128,7 +128,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button class="mobMenu" style="display:none" onclick="closeMenu();openAdBox()">📺 Бонус за рекламу</button>
   <button class="mobMenu" style="display:none" onclick="closeMenu();openNetUI()">🏙 Мои склады</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v68</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v69</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -1115,8 +1115,9 @@ function vanStep(dt){syncVans();
     else if(v.st==='back'){v.t-=dt;if(v.t<=0)v.st='idle';}}}
 function vanInfo(){const own=vans.filter(v=>v.k==='own'),rent=vans.filter(v=>v.k==='rent'),way=vans.filter(v=>v.st==='out'||v.st==='back').length;
   return `Свои: ${own.length} · наёмные: ${rent.length} <small>(${VAN.rent.cost} р. за товар)</small><br>В пути: ${way} · ждут отправки: <b>${outQ.length}</b> зак.`;}
-const PAY=150,PIECE=4,PIECE_ONLY=14;let payMode='fix';
-function payOf(w){const k=nightOn?1.2:1;if(w.out)return w.today?Math.round(w.sal*k):0;return Math.round((payMode==='piece'?(w.ops||0)*PIECE_ONLY:(w.today?w.sal:0)+(w.ops||0)*PIECE)*k);}
+const PAY=150,PIECE=4;let pieceRate=14,outMode='shift',outRate=14,outShift=550;let payMode='fix';
+function adjPay(k,d){const lim={pieceRate:[5,40],outRate:[5,40],outShift:[300,1200]}[k];const v=Math.max(lim[0],Math.min(lim[1],({pieceRate,outRate,outShift})[k]+d));if(k==='pieceRate')pieceRate=v;else if(k==='outRate')outRate=v;else outShift=v;renderBoss();hud();}
+function payOf(w){const k=nightOn?1.2:1;if(w.out)return Math.round((outMode==='piece'?(w.ops||0)*outRate:(w.today?outShift:0))*k);return Math.round((payMode==='piece'?(w.ops||0)*pieceRate:(w.today?w.sal:0)+(w.ops||0)*PIECE)*k);}
 function payMul(){return (0.7+rating*0.08)*(evt&&evt.k==='black'?1.2:1);}
 function ordMul(){return (0.5+rating/5)*(evt&&evt.k==='black'?2.5:1)*(SEAS?SEAS.o:1)*(nightOn?1.4:1);}
 const EVT={
@@ -1213,7 +1214,7 @@ function pplHTML(){const act=workers.filter(w=>!w.quit&&!w.fire);
   return `<h2 style="margin-top:0">👥 Сотрудники</h2><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">`+chips.map(c=>`<button onclick="pplF='${c[0]}';infoOpen('ppl')" style="padding:4px 8px;${pplF===c[0]?'background:#f2c230;color:#000':''}">${c[0]in ROLES?`<span class="dot" style="background:${ROLES[c[0]].hat}"></span>`:''}${c[1]} ${c[2]}</button>`).join('')+'</div>'+
    (L.length?L.map(w=>{const stt=w.sickD?'🤒 болеет':w.vacD?'🏖 в отпуске':w.lateT>0?'⏰ опаздывает':w.absent?(w.out?'не вышел':'выходной'):w.onBreak?'☕ перерыв':(w.q.length||w.cur)?'работает':'😴 стоит';
      const ix=L.indexOf(w),med=pplF==='top'?(['🥇','🥈','🥉'][ix]||(ix+1)+'.')+' ':'';
-     return `<div style="display:flex;align-items:center;gap:6px;padding:4px;border-bottom:1px solid #333"><span class="dot" style="background:${ROLES[w.role].hat}"></span><div style="flex:1">${med}<b>${w.name}</b>${w.eom?' 🏅':''}${w.sickD?' 🤒':''}${w.vacD?' 🏖':''}${kpiOn&&!w.absent?` <small style="color:${(w.ops||0)>=normOf(w)?'#7dff7d':'#aaa'}">норма ${w.ops||0}/${normOf(w)}</small>`:''}${pplF==='top'?` <b style="color:#f2c230">${w.ops||0} оп.</b>${w.out?'':` · ${payMode==='piece'?(w.ops||0)*PIECE_ONLY:(w.ops||0)*PIECE} р.`}${w.opsY!=null?` <small style="color:#888">(вчера ${w.opsY})</small>`:''}`:''}${w.lic?' ⚡права':''} <small style="color:#aaa"><span style="color:#f2c230">${starStr(w)}</span> ${ROLES[w.role].n} · ${w.out?'аутсорс':'штат'} · ${GRADES[gradeI(w)].n}${floors>1?' · этаж '+(w.f+1):''} · ${stt}</small></div>`+
+     return `<div style="display:flex;align-items:center;gap:6px;padding:4px;border-bottom:1px solid #333"><span class="dot" style="background:${ROLES[w.role].hat}"></span><div style="flex:1">${med}<b>${w.name}</b>${w.eom?' 🏅':''}${w.sickD?' 🤒':''}${w.vacD?' 🏖':''}${kpiOn&&!w.absent?` <small style="color:${(w.ops||0)>=normOf(w)?'#7dff7d':'#aaa'}">норма ${w.ops||0}/${normOf(w)}</small>`:''}${pplF==='top'?` <b style="color:#f2c230">${w.ops||0} оп.</b>${` · ${w.out?(outMode==='piece'?(w.ops||0)*outRate:outShift):payMode==='piece'?(w.ops||0)*pieceRate:(w.ops||0)*PIECE} р.`}${w.opsY!=null?` <small style="color:#888">(вчера ${w.opsY})</small>`:''}`:''}${w.lic?' ⚡права':''} <small style="color:#aaa"><span style="color:#f2c230">${starStr(w)}</span> ${ROLES[w.role].n} · ${w.out?'аутсорс':'штат'} · ${GRADES[gradeI(w)].n}${floors>1?' · этаж '+(w.f+1):''} · ${stt}</small></div>`+
      (!w.absent?`<button onclick="findW2(${w.id})" style="padding:4px 8px">📍 Найти</button>`:'')+(!w.absent&&!w.q.length&&!w.cur?`<button onclick="homeW(${w.id})" style="padding:4px 8px">🏠 Домой</button>`:'')+
      (w.role==='load'&&!w.out&&!w.lic?`<button onclick="licW(${w.id});infoOpen('ppl')" style="padding:4px 8px">🪪 Права ${LIC_COST}</button>`:'')+'</div>';}).join(''):'<div style="color:#aaa">Никого</div>')+(pplF==='idle'&&L.length?`<button onclick="homeIdle()" style="width:100%;margin-top:6px;padding:8px;background:#7a4a10">🏠 Отправить домой всех без дела (${L.length})</button>`:'')+(pplF==='top'?'<p style="color:#aaa;font-size:13px">Операций за сегодня: принял поддон, отсортировал, разместил, подобрал, отпрессовал. Аутсорс в рейтинге — если что-то сделал.</p>':'')+
    (OB('jackpark').length||ejacks?`<p style="color:#aaa;font-size:13px">⚡ Электророхлей: ${ejacks}. Ездят на них только <b>штатные грузчики с правами</b>.</p>`:'');}
@@ -1248,7 +1249,7 @@ function officeHTML(){if(!OB('office').length)return '<h2 style="margin-top:0">�
     return `<div style="background:${on?'#2e4a2e':'#1d222c'};border-radius:6px;padding:8px;margin:6px 0"><b>${S.n}</b> ${on?'✔ работает':''} <span style="float:right;color:#f2c230">${S.c} р./день</span><br><small style="color:#ccc">${S.d}</small><br>
      <button onclick="specToggle('${k}')" style="margin-top:5px;padding:5px 10px;background:${on?'#7a2a2a':'#2e7d32'}">${on?'Уволить':'Нанять'}</button></div>`;}).join('');}
 function anTips(){const t=[];const act=workers.filter(w=>!w.absent&&!w.hidden&&!w.onBreak);const io=idleOut().length;
-  if(io>=5)t.push(`Стоят без дела ${io} аутсорсеров — отпусти, сэкономишь ~${io*OUT_PAY} р. сегодня`);
+  if(io>=5)t.push(`Стоят без дела ${io} аутсорсеров — отпусти, сэкономишь ~${outMode==='piece'?0:io*outShift} р. сегодня`);
   if(bn.space>=85)t.push(`Стеллажи заполнены на ${Math.round(bn.space)}% — поставь ещё ${Math.max(3,Math.ceil(OB('rack').length*0.25))} стеллажей, иначе встанет вся цепочка`);
   const nm={recv:'приёмке',sort:'сортировке',put:'размещении',pick:'подборе'};
   for(const k in nm)if(bnLevel(k,bn[k])>=2){const a=bnAdvice(k);t.push(`Завал на ${nm[k]}: ${a?a.t:'людей хватает, подожди'}`);}
@@ -1353,6 +1354,7 @@ function renderAch(){achLoad();const cur=diffN();if(!achTab)achTab=cur;const A=a
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${Math.round(a[5]*(0.75+0.25*achTab))} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v69','💵 гибкая оплата: штат и аутсорс — оклад/смена или только сдельно, ставки настраиваешь сам (от 5 р. за операцию, смена от 300 р.). Нет работы — нет зарплаты'],
  ['v68','🛂 АБК и проходная вне склада: турникет по лицу, раздевалки М/Ж, сейф, охрана с металлодетектором · 🚰 кулер · 📋 стенд ТБ · 🧯 огнетушители и пожарная проверка · 🏆 доска почёта · цветы убраны'],
  ['v67','🎚 5 уровней сложности: Аркада → Лёгкий → Нормальный → Сложный → Реализм · 🏆 достижения на каждом уровне свои (вкладки), награда выше на сложных · 🎓 достижение «Научился играть»'],
  ['v66','🎄 сезонные события по календарю · 🌙 ночная смена · 🔀 пересорт · 📋 инвентаризация · ⏱ нормы и KPI · 🤒 больничные и отпуска · 📦 прогноз на завтра · 🏅 сотрудник месяца · 🎨 дизайн: пол, разметка, растения · 📱 упрощённая панель на телефоне'],
@@ -1499,7 +1501,7 @@ function endDay(){
   if(netInc){money+=netInc;}
   report=`День ${day}: доход ${dayInc} р. − зарплаты ${sal} р. − аренда ${rn} р. = ${dayInc-sal-rn} р. · Отгружено товаров: ${dayShip} · ⭐ ${rating.toFixed(2)}`+audTxt+(netInc?` · 🏙 другие склады: ${netInc>0?'+':''}${netInc} р.`:'');
   let q=[];
-  for(const w of workers)if(!w.out){const r=payMode==='piece'?Math.max(0.7,(w.earnY||0)/w.want):w.sal/w.want;w.mood+=(Math.min(85,60+(r-1)*80)-w.mood)*0.3;const ch=((r<0.9?(0.9-r)*1.5:0)+(w.sched==='7/0'?0.06:0)+(w.mood<30?0.15:0))*(spec.hr?0.3:1)*(D().quit||0);if(Math.random()<ch){w.quit=true;q.push(w.name);}}
+  for(const w of workers)if(!w.out){const r=Math.max(0.95,payMode==='piece'?(w.earnY||0)/w.want:w.sal/w.want);w.mood+=(Math.min(85,60+(r-1)*80)-w.mood)*0.3;const ch=((r<0.9?(0.9-r)*1.5:0)+(w.sched==='7/0'?0.06:0)+(w.mood<30?0.15:0))*(spec.hr?0.3:1)*(D().quit||0);if(Math.random()<ch){w.quit=true;q.push(w.name);}}
   day++;dayInc=0;dayShip=0;st.fireDay=0;
   toast(report+kpiTxt+eomTxt+fireTxt+thf+valTxt+(ss?` · специалисты −${ss} р.`:'')+(q.length?` · Уволились: ${q.join(', ')}`:''),thf?7:5);
   startDay();save();
@@ -1554,7 +1556,7 @@ function step(dt){
 
 // ================= СОХРАНЕНИЕ =================
 function serialize(){
-  return {v:3,abk,nightOn,invUntil,nextEvt,kpiOn,floorCol,marking,vestCol,outUni,buses,valOrd,kgtOrd,payMode,spec,loan,ach,st,vansOwn,ejacks,outQ:[...outQ,...vans.flatMap(v=>v.load)],GH,expD,gates:gates.map(g=>({y:g.y,side:g.side||'L'})),gT,rating,clsI,evt,cancelToday,upg,goalI,playT,cancelN,tasksDone,hist,gameMode,ds,tasks,xp,lvl,bestShip,tutStep,money,day,dayT,pvz,expLvl,GW,floors,dayInc,dayShip,totalShip,report,cbCount,lift,lifts:lifts.map(l=>({x:l.x,y:l.y})),stairs:stairs.map(l=>({x:l.x,y:l.y})),
+  return {v:3,pieceRate,outMode,outRate,outShift,abk,nightOn,invUntil,nextEvt,kpiOn,floorCol,marking,vestCol,outUni,buses,valOrd,kgtOrd,payMode,spec,loan,ach,st,vansOwn,ejacks,outQ:[...outQ,...vans.flatMap(v=>v.load)],GH,expD,gates:gates.map(g=>({y:g.y,side:g.side||'L'})),gT,rating,clsI,evt,cancelToday,upg,goalI,playT,cancelN,tasksDone,hist,gameMode,ds,tasks,xp,lvl,bestShip,tutStep,money,day,dayT,pvz,expLvl,GW,floors,dayInc,dayShip,totalShip,report,cbCount,lift,lifts:lifts.map(l=>({x:l.x,y:l.y})),stairs:stairs.map(l=>({x:l.x,y:l.y})),
     objs:objs.map(o=>{const c={type:o.type,f:o.f,x:o.x,y:o.y,off:!!o.off,unload:!!o.unload};
       if(o.type==='dock'||o.type==='recv'||o.type==='pfloor')c.p=o.p&&!o.p.res?{boxes:[...o.p.boxes],wrap:o.p.wrap,acc:o.p.acc}:(o.p?{boxes:[...o.p.boxes],wrap:o.p.wrap,acc:o.p.acc}:null);
       if(o.trash!=null)c.trash=o.trash;
@@ -1579,7 +1581,7 @@ function resetState(){
 }
 function portraitHint(){if(isMob&&innerHeight>innerWidth)toast('📱 Поверни телефон горизонтально — так удобнее',4);}
 function newGame(mode){
-  resetState();abk={turn:0,lm:0,lf:0,safe:0,guard:0};achTab=0;nightOn=false;invT=0;invUntil=0;nextEvt=null;kpiOn=true;floorCol=null;marking=false;vestCol='#3fbf5a';outUni=false;buses=0;valOrd=0;kgtOrd=0;payMode='piece';spec={};loan=null;ach={};st={pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0};vansOwn=0;vans=[];outQ=[];ejacks=0;gameMode=mode||'easy';upg={};gT=0;rating=4;clsI=0;evt=null;cancelToday=0;retT=0;goalI=0;playT=0;cancelN=0;tasksDone=0;hist=[];xp=0;lvl=1;bestShip=0;
+  resetState();pieceRate=14;outMode='piece';outRate=14;outShift=550;abk={turn:0,lm:0,lf:0,safe:0,guard:0};achTab=0;nightOn=false;invT=0;invUntil=0;nextEvt=null;kpiOn=true;floorCol=null;marking=false;vestCol='#3fbf5a';outUni=false;buses=0;valOrd=0;kgtOrd=0;payMode='piece';spec={};loan=null;ach={};st={pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0};vansOwn=0;vans=[];outQ=[];ejacks=0;gameMode=mode||'easy';upg={};gT=0;rating=4;clsI=0;evt=null;cancelToday=0;retT=0;goalI=0;playT=0;cancelN=0;tasksDone=0;hist=[];xp=0;lvl=1;bestShip=0;
   tutStep=0;tutMoved=false;money=D().m;day=1;dayT=0;pvz=1;expLvl=0;GW=24;floors=1;dayInc=0;dayShip=0;totalShip=0;cbCount=0;report='Пока нет данных';
   GH=15;expD=0;gates=[{y:3,side:'L'}];DOOR.y=14;
   [2,3,4].forEach(y=>addObj('dock',0,0,y));
@@ -1613,7 +1615,7 @@ function loadState(s){
   if(!s.jv){player.jack=true;workers.forEach(w=>{if(w.role==='load')w.jack=true;});}if(!walk(player.f,player.tx,player.ty))placeAt(player,0,1,3);
   viewF=player.f;pending=s.pending||[];cands=s.cands||[];if(!cands.length)genCands();
   ds=s.ds||{ship:0,pallets:0,bales:0,orders:0};tasks=s.tasks||[];if(!tasks.length)genTasks();
-  abk=Object.assign({turn:0,lm:0,lf:0,safe:0,guard:0},s.abk||{});nightOn=!!s.nightOn;invUntil=s.invUntil||0;nextEvt=s.nextEvt||null;kpiOn=s.kpiOn!==false;floorCol=s.floorCol||null;marking=!!s.marking;invT=0;vestCol=s.vestCol||'#3fbf5a';outUni=!!s.outUni;buses=s.buses||0;valOrd=s.valOrd||0;kgtOrd=s.kgtOrd||0;payMode=s.payMode||'fix';spec=s.spec||{};loan=s.loan||null;ach=s.ach||{};achLoad();{const dk=gameMode==='easy'?2:gameMode==='real'?4:(+gameMode||2);achD[dk]=Object.assign(achD[dk]||{},ach);achSave();}achTab=0;st=Object.assign({pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0},s.st||{});vansOwn=s.vansOwn||0;vans=[];outQ=s.outQ||[];ejacks=s.ejacks||0;
+  pieceRate=s.pieceRate||14;outMode=s.outMode||'shift';outRate=s.outRate||14;outShift=s.outShift||550;abk=Object.assign({turn:0,lm:0,lf:0,safe:0,guard:0},s.abk||{});nightOn=!!s.nightOn;invUntil=s.invUntil||0;nextEvt=s.nextEvt||null;kpiOn=s.kpiOn!==false;floorCol=s.floorCol||null;marking=!!s.marking;invT=0;vestCol=s.vestCol||'#3fbf5a';outUni=!!s.outUni;buses=s.buses||0;valOrd=s.valOrd||0;kgtOrd=s.kgtOrd||0;payMode=s.payMode||'fix';spec=s.spec||{};loan=s.loan||null;ach=s.ach||{};achLoad();{const dk=gameMode==='easy'?2:gameMode==='real'?4:(+gameMode||2);achD[dk]=Object.assign(achD[dk]||{},ach);achSave();}achTab=0;st=Object.assign({pRecv:0,pCage:0,fireDay:0,black:0,audit:0,noCancel:0,r5:0,trucks:0},s.st||{});vansOwn=s.vansOwn||0;vans=[];outQ=s.outQ||[];ejacks=s.ejacks||0;
   for(const o of [...objs])if(['lockm','lockf','safe','plant'].includes(o.type)){if(o.type==='lockm')abk.lm++;if(o.type==='lockf')abk.lf++;if(o.type==='safe')abk.safe=1;if(o.type==='plant')money+=300;delObj(o);}
   outQ.forEach(o=>delete o.sh);OB('ship').forEach(o=>{o.n=0;o.inc=0;});
   if(SEAS)setTimeout(()=>toast(`${SEAS.n}: ${SEAS.d}`,5),2500);
@@ -1946,7 +1948,7 @@ let popW=null,popXY=[0,0],popReply='';
 function showWPop(w,e){const el=document.getElementById('wpop');
   if(e){popXY=[e.clientX+10,e.clientY-20];popReply='';}
   popW=w;
-  let h=`<b>${w.name}</b><small>${w.out?'аутсорс':'штат'} · ${ROLES[w.role].n}${w.out?'':' · настроение '+moodFace(w.mood)+' '+Math.round(w.mood)}</small><small>Грейд: ${gradeTxt(w)} · скорость ×${GRADES[gradeI(w)].m}${w.lic?' · ⚡ права':''}</small>${w.out?'':`<small>Рейтинг: <span style="color:#f2c230">${starStr(w)}</span> · ${sexOf(w)==='f'?'👩':'👨'}${hasLock()?(!w.noLock?' · 👕 в форме':' · в своей одежде'):''}</small><small>Операций сегодня: ${w.ops||0} → ${payMode==='piece'?`заработал ${(w.ops||0)*PIECE_ONLY} р.`:`+${(w.ops||0)*PIECE} р. сдельно`}</small>`}
+  let h=`<b>${w.name}</b><small>${w.out?'аутсорс':'штат'} · ${ROLES[w.role].n}${w.out?'':' · настроение '+moodFace(w.mood)+' '+Math.round(w.mood)}</small><small>Грейд: ${gradeTxt(w)} · скорость ×${GRADES[gradeI(w)].m}${w.lic?' · ⚡ права':''}</small>${w.out?'':`<small>Рейтинг: <span style="color:#f2c230">${starStr(w)}</span> · ${sexOf(w)==='f'?'👩':'👨'}${hasLock()?(!w.noLock?' · 👕 в форме':' · в своей одежде'):''}</small><small>Операций сегодня: ${w.ops||0} → ${payMode==='piece'?`заработал ${(w.ops||0)*pieceRate} р.`:`+${(w.ops||0)*PIECE} р. сдельно`}</small>`}
   <div style="background:#151920;padding:6px;border-radius:4px;max-width:270px;white-space:normal">💭 «${thought(w)}»</div>`;
   if(popReply)h+=`<div style="background:#fff;color:#222;padding:6px;border-radius:4px;max-width:270px;white-space:normal">🗣 «${popReply}»</div>`;
   h+=`<small>Сказать:</small>
@@ -2156,7 +2158,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v68'} — отчёт`,
+  return [`СкладМастер ${'v69'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -2202,7 +2204,12 @@ function renderBoss(){
     <td><input type="number" id="cz${i}" value="${c.want}" step="50" min="300"> р.</td>
     <td><button onclick="hireCand(${i})">Пригласить</button></td></tr>`;});h+='</table>';}
   h+=`<div style="font-size:12px;color:#aaa;margin-top:4px">Мало предложишь — откажется. Платишь меньше, чем хочет — злится, работает медленнее и может уволиться. «Без выходных» — устаёт.</div>
-  <div style="margin:6px 0">💵 Оплата штата: <button onclick="payMode='fix';renderBoss()" style="padding:4px 8px;${payMode==='fix'?'background:#f2c230;color:#000':''}">Оклад + ${PIECE} р./операция</button> <button onclick="payMode='piece';renderBoss()" style="padding:4px 8px;${payMode==='piece'?'background:#f2c230;color:#000':''}">Только сдельно — ${PIECE_ONLY} р. за операцию</button><br><small style="color:#aaa">Сдельно: кто больше напикал (принял, отсортировал, разместил, подобрал) — тот больше получил. Кто стоит — ничего не стоит тебе, но грустит и может уйти.</small></div>
+  <h3>💵 Система оплаты</h3><div style="background:#1d222c;border-radius:6px;padding:8px">
+   <b>Штат:</b> <button onclick="payMode='fix';renderBoss()" style="padding:4px 8px;${payMode==='fix'?'background:#f2c230;color:#000':''}">Оклад + ${PIECE} р./операция</button> <button onclick="payMode='piece';renderBoss()" style="padding:4px 8px;${payMode==='piece'?'background:#f2c230;color:#000':''}">Только сдельно</button>
+   ${payMode==='piece'?`ставка: <button onclick="adjPay('pieceRate',-1)">−</button> <b>${pieceRate} р.</b> <button onclick="adjPay('pieceRate',1)">+</button> за операцию`:'<small>оклад каждому — в таблице ниже (от 300 р.)</small>'}<br>
+   <b>Аутсорс:</b> <button onclick="outMode='shift';renderBoss()" style="padding:4px 8px;${outMode==='shift'?'background:#f2c230;color:#000':''}">За смену</button> <button onclick="outMode='piece';renderBoss()" style="padding:4px 8px;${outMode==='piece'?'background:#f2c230;color:#000':''}">Только сдельно</button>
+   ${outMode==='piece'?`ставка: <button onclick="adjPay('outRate',-1)">−</button> <b>${outRate} р.</b> <button onclick="adjPay('outRate',1)">+</button> за операцию`:`смена: <button onclick="adjPay('outShift',-50)">−</button> <b>${outShift} р.</b> <button onclick="adjPay('outShift',50)">+</button>`}<br>
+   <small style="color:#aaa">Сдельно — честно: склад ничего не обещает. Есть работа — есть деньги, нет работы — нет зарплаты. Кто напикал больше — получил больше. Люди соглашаются — деваться некуда 🙂</small></div>
   <h3>⚙ Режим работы</h3><div><label><input type="checkbox" style="width:auto" ${nightOn?'checked':''} onchange="nightOn=this.checked;renderBoss()"> 🌙 Работать и ночью — заказов и фур ×1,4, зарплаты +20%, ночью люди на 7% медленнее и чаще ошибаются</label></div>
   <div><label><input type="checkbox" style="width:auto" ${kpiOn?'checked':''} onchange="kpiOn=this.checked;renderBoss()"> ⏱ Нормы и KPI — выполнил норму: премия 200 р. и настроение ↑, меньше 60% — беседа (настроение ↓)</label></div>
   <div style="margin-top:4px"><button onclick="startInv()" ${invT>0?'disabled':''}>📋 Провести инвентаризацию — 2000 р.</button> <small style="color:#aaa">${invT>0?'идёт…':day<invUntil?`недостач меньше ещё ${invUntil-day} дн.`:'стеллажи закрываются на 40 сек: исправляет пересорт, недостач меньше 7 дней'}</small></div>
@@ -2210,7 +2217,7 @@ function renderBoss(){
   <div style="margin-top:6px">Жилеты аутсорса для новых: ${Object.keys(VESTS).map(c=>`<button onclick="vestCol='${c}';renderBoss()" style="padding:3px 8px;${vestCol===c?'outline:2px solid #fff':''}"><span class="dot" style="background:${c}"></span>${VESTS[c]}</button>`).join(' ')}<br><small style="color:#aaa">Меняй цвет — и по жилетам будет видно, кто когда пришёл.</small></div>
   <div style="margin-top:6px"><label><input type="checkbox" style="width:auto" ${outUni?'checked':''} onchange="outUni=this.checked;renderBoss()"> 👕 Выдавать форму аутсорсу — залог 1200 р. (возвращаем через 8 смен). В форме +5% к скорости</label><br><small style="color:#aaa">Штат получает форму бесплатно (нужны раздевалки).</small></div>
   <h3>📅 План на день</h3><div>${planHTML()}</div>
-  <h3>👷 Аутсорс (агентство) — ${OUT_PAY} р. за смену</h3><div style="margin-bottom:4px">Нажми на работу — человек сразу приедет на склад в оранжевом жилете:</div><div>`;
+  <h3>👷 Аутсорс (агентство) — ${outMode==='piece'?outRate+' р. за операцию':outShift+' р. за смену'}</h3><div style="margin-bottom:4px">Нажми на работу — человек сразу приедет на склад:</div><div>`;
   for(const r in ROLES)h+=`<button style="margin:2px" onclick="hireOut('${r}')">+ ${ROLES[r].n}</button>`;
   h+=`</div><div style="font-size:12px;color:#aaa;margin-top:4px">Выходят каждый день, но медленнее, ошибаются и иногда не приходят. Платишь только за вышедших.</div>
   <h3>👥 Сотрудники (${workers.length})</h3>`;
@@ -2220,7 +2227,7 @@ function renderBoss(){
     h+=`<tr><td><span class="dot" style="background:${ROLES[w.role].hat}"></span><b>${w.name}</b>${w.lic?' ⚡':''}<br><small>${GRADES[gradeI(w)].i} ${GRADES[gradeI(w)].n} · ${w.out?'аутсорс':stars(w.skill)+' '+moodTxt(w)}</small></td>
       <td><select onchange="setW(${w.id},'role',this.value)">${Object.keys(ROLES).map(k=>`<option value="${k}" ${k===w.role?'selected':''}>${ROLES[k].n}</option>`).join('')}</select></td>
       <td>${w.out?'агентство':`<select onchange="setW(${w.id},'sched',this.value)">${Object.keys(SCHED).map(k=>`<option value="${k}" ${k===w.sched?'selected':''}>${SCHED[k]}</option>`).join('')}</select>`}</td>
-      <td>${w.out?OUT_PAY+' р.':`<input type="number" value="${w.sal}" step="50" min="300" onchange="setW(${w.id},'sal',+this.value)"> р.<br><small>хочет ${w.want}</small>`}</td>
+      <td>${w.out?(outMode==='piece'?outRate+' р./оп.':outShift+' р.'):`<input type="number" value="${w.sal}" step="50" min="300" onchange="setW(${w.id},'sal',+this.value)"> р.<br><small>хочет ${w.want}</small>`}</td>
       <td><small>${st}</small></td><td>${w.absent?'':`<button onclick="closeBoss();findW2(${w.id})">📍</button> `}${w.fire||w.quit?'':`<button onclick="fireW(${w.id})">Уволить</button>`}</td></tr>`;});h+='</table>';}
   h+=`<h3>⬆ Улучшения</h3>`+Object.keys(UPG).map(k=>{const u=UPG[k];return upg[k]?`<div style="color:#7dff7d;margin:3px 0">✔ ${u.n} — ${u.d}</div>`:`<button style="margin:3px 0;width:100%;text-align:left;white-space:normal" onclick="buyUpg('${k}')" ${money<u.c?'disabled':''}>${u.n} — ${u.c} р.<br><small>${u.d}</small></button>`;}).join('');
   h+=`<h3>🚀 Развитие</h3>
@@ -2242,7 +2249,7 @@ function hireCand(i){const c=cands[i];const role=document.getElementById('cr'+i)
   spawnPos(w);workers.push(w);
   w.today=onShift(w,day);if(!w.today)w.absent=true;
   toast(`${c.name} принят(а) в штат${w.today?' и вышел(ла) на смену':' — выйдет по графику'}`,2.5);renderBoss();}
-function hireOut(role){const w=mkPerson({role,out:true,vest:vestCol,dressed:!hasLock(),name:NAMES[Math.floor(Math.random()*NAMES.length)],skill:0.75,want:OUT_PAY,sal:OUT_PAY,sched:'agency',off:0,today:true});
+function hireOut(role){const w=mkPerson({role,out:true,vest:vestCol,dressed:!hasLock(),name:NAMES[Math.floor(Math.random()*NAMES.length)],skill:0.75,want:OUT_PAY,sal:outShift,sched:'agency',off:0,today:true});
   spawnPos(w);workers.push(w);if(outUni){w.dep=1200;w.depN=0;money+=1200;}toast('Аутсорсер '+w.name+' приехал'+(outUni?' · залог за форму +1200 р.':''),2);renderBoss();}
 function setW(id,k,v){const w=workers.find(w=>w.id===id);if(!w)return;w[k]=v;
   if(k==='sched'){const on=onShift(w,day);if(on){w.absent=false;w.absPend=false;w.today=true;}}
@@ -2304,7 +2311,7 @@ function hud(){
   setH('sDay',`📅 День ${day} <span class="bar"><i style="width:${Math.round(dayT/DAYLEN*50)*2}%"></i></span>`);
   setH('sSave',(VK.on&&performance.now()-VK.cloudT<3000)?'☁ <span style="color:#7dff7d">в VK</span>':saveFail?'<span style="color:#f55">💾 ошибка!</span>':(performance.now()-savedT<1200?'💾 <span style="color:#7dff7d">'+(isMob?'✓':'сохранено')+'</span>':'💾 <span style="opacity:0">'+(isMob?'✓':'сохранено')+'</span>'));
   setH('sPvz',`🏙 ${nets[netCur].name} · 🏪 ПВЗ: ${pvz} · 📦 ${totalShip} · 👥 ${workers.filter(w=>!w.absent).length}/${workers.length}`);
-  const pcs=workers.reduce((a,w)=>a+(w.out?0:payMode==='piece'?(w.ops||0)*PIECE_ONLY:(w.ops||0)*PIECE),0),salToday=workers.reduce((a,w)=>a+payOf(w),0),exp=salToday+rent()+specSal()+busCost()+canteenCost(),fc=money-exp;
+  const pcs=workers.reduce((a,w)=>a+(w.out?(outMode==='piece'?(w.ops||0)*outRate:0):payMode==='piece'?(w.ops||0)*pieceRate:(w.ops||0)*PIECE),0),salToday=workers.reduce((a,w)=>a+payOf(w),0),exp=salToday+rent()+specSal()+busCost()+canteenCost(),fc=money-exp;
   let o=sec('fin',`💰 Финансы (день ${day})`,`Заработано сегодня: <span style="color:#7dff7d">+${dayInc} р.</span><br>Вечером спишут: <span style="color:#f77">−${exp} р.</span><br><small>зарплаты ${salToday} (из них сдельно ${pcs}) + аренда ${rent()}${specSal()?' + специалисты '+specSal():''}${busCost()?' + автобусы и охрана '+busCost():''}${canteenCost()?' + столовая '+canteenCost():''}</small><br><small>🏆 рекорд отгрузки за день: ${bestShip}</small><br>Останется: <b style="color:${fc<0?'#f55':'#7dff7d'}">${Math.floor(fc)} р.</b>${fc<0?'<br><small style="color:#f77">⚠ Не хватает! Отпусти лишних людей или сократи расходы</small>':''}${loan?`<br><small>🏦 Кредит: ещё ${loan.left} дн. по ${loan.pay} р.</small><br><button onclick="repayLoan()" style="width:100%;margin-top:3px;padding:5px">🏦 Погасить досрочно — ${loanLeft()} р.</button>`:money<50000?'<br><button onclick="takeLoan()" style="width:100%;margin-top:3px;padding:5px">🏦 Взять кредит 200 000 р. (10 дн. по 22 000)</button>':''}`,`${fc<0?'<span style="color:#f55">':''}${Math.floor(fc)} р. к вечеру${fc<0?'</span>':''}`);
   o+=sec('plan','📅 План на день',planHTML(),(()=>{const p=dayPlan();return `~${p.tr} фур · нужно ${p.tot}/вышло ${p.have}`;})());
   {const worst=Math.max(...Object.keys(bn).map(k=>bnLevel(k,bn[k])));o+=sec('bn','🚦 Узкие места',bnHTML(),['🟢 всё успевают','🟡 есть очереди','🔴 есть завал'][worst]);}
