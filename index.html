@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v69</title>
+<html lang="ru"><head><meta charset="utf-8"><title>СкладМастер v70</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -102,7 +102,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button onclick="infoOpen('ppl')" title="Найти сотрудника">👥 Люди</button>
   <button onclick="openNetUI()" id="bNet">🏙 Склады</button>
   <button id="bBoss">🧑‍💼 Кабинет</button>
-  <button id="bMenu">☰ Меню <small style="color:#aaa">v69</small></button>
+  <button id="bMenu">☰ Меню <small style="color:#aaa">v70</small></button>
 </div>
 <div id="left"><div class="whead" data-w="left"><b class="wdrag" style="color:#888">⠿</b><b style="flex:1;font-size:13px">🔨 Стройка</b><span class="wbtns"><button onclick="winFs('left',-1)">A−</button><button onclick="winFs('left',1)">A+</button><button onclick="winMin('left')" title="свернуть">▁</button></span></div><div id="leftIn"></div></div>
 <canvas id="cv"></canvas>
@@ -119,7 +119,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
 <div id="wpop"></div>
 <div id="modal" class="ov"><div class="box" id="mbox"></div></div>
 <div id="menu" class="ov"><div class="box">
-  <h1>📦 СкладМастер <span style="color:#f2c230">v69</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
+  <h1>📦 СкладМастер <span style="color:#f2c230">v70</span></h1><div style="color:#aaa;margin-bottom:10px">симулятор склада и ПВЗ</div>
   <button id="mCont">▶ Продолжить</button>
   <button id="mNew">🆕 Новая игра</button>
   <button onclick="toggleFS()" class="fsBtn">⛶ На весь экран</button>
@@ -128,7 +128,7 @@ body.mob #hintBox{left:50%;transform:translateX(-50%);bottom:auto;top:30%}
   <button class="mobMenu" style="display:none" onclick="closeMenu();openAdBox()">📺 Бонус за рекламу</button>
   <button class="mobMenu" style="display:none" onclick="closeMenu();openNetUI()">🏙 Мои склады</button>
   <button onclick="infoOpen('rules')">📜 Правила игры</button>
-  <button onclick="infoOpen('news')">🆕 Что нового в v69</button>
+  <button onclick="infoOpen('news')">🆕 Что нового в v70</button>
   <button id="mSup" onclick="infoOpen('support')">💛 Поддержать разработчика</button>
   <button id="mInv" onclick="inviteFriends()">👥 Позвать друзей</button>
   <button id="mRep">📋 Отчёт для разработчика</button>
@@ -1116,7 +1116,7 @@ function vanStep(dt){syncVans();
 function vanInfo(){const own=vans.filter(v=>v.k==='own'),rent=vans.filter(v=>v.k==='rent'),way=vans.filter(v=>v.st==='out'||v.st==='back').length;
   return `Свои: ${own.length} · наёмные: ${rent.length} <small>(${VAN.rent.cost} р. за товар)</small><br>В пути: ${way} · ждут отправки: <b>${outQ.length}</b> зак.`;}
 const PAY=150,PIECE=4;let pieceRate=14,outMode='shift',outRate=14,outShift=550;let payMode='fix';
-function adjPay(k,d){const lim={pieceRate:[5,40],outRate:[5,40],outShift:[300,1200]}[k];const v=Math.max(lim[0],Math.min(lim[1],({pieceRate,outRate,outShift})[k]+d));if(k==='pieceRate')pieceRate=v;else if(k==='outRate')outRate=v;else outShift=v;renderBoss();hud();}
+function adjPay(k,d){const lim={pieceRate:[0.1,40],outRate:[0.1,40],outShift:[300,1200]}[k];const cur=({pieceRate,outRate,outShift})[k];if(k!=='outShift'){const st=cur+(d>0?0:-0.001)<1?0.1:cur+(d>0?0:-0.001)<5?0.5:1;d=Math.sign(d)*st;}const v=Math.round(Math.max(lim[0],Math.min(lim[1],cur+d))*100)/100;if(k==='pieceRate')pieceRate=v;else if(k==='outRate')outRate=v;else outShift=v;renderBoss();hud();}
 function payOf(w){const k=nightOn?1.2:1;if(w.out)return Math.round((outMode==='piece'?(w.ops||0)*outRate:(w.today?outShift:0))*k);return Math.round((payMode==='piece'?(w.ops||0)*pieceRate:(w.today?w.sal:0)+(w.ops||0)*PIECE)*k);}
 function payMul(){return (0.7+rating*0.08)*(evt&&evt.k==='black'?1.2:1);}
 function ordMul(){return (0.5+rating/5)*(evt&&evt.k==='black'?2.5:1)*(SEAS?SEAS.o:1)*(nightOn?1.4:1);}
@@ -1354,6 +1354,7 @@ function renderAch(){achLoad();const cur=diffN();if(!achTab)achTab=cur;const A=a
    ACH.map(a=>{const d=ach[a[0]];return `<div style="background:${d?'#2e4a2e':'#1d222c'};border-radius:6px;padding:6px 8px;opacity:${d?1:.75};display:flex;gap:8px;align-items:center"><div style="font-size:26px;filter:${d?'none':'grayscale(1)'}">${a[1]}</div><div><b>${a[2]}</b>${d?' ✔':''}<br><small style="color:#bbb">${a[3]}</small>${a[5]?`<br><small style="color:#f2c230">+${Math.round(a[5]*(0.75+0.25*achTab))} р.</small>`:''}</div></div>`;}).join('')+'</div>';}
 // ===== ИНФО-ОКНА: правила, что нового, поддержка =====
 const CHANGELOG=[
+ ['v70','💵 ставка за операцию от 0,1 р. — вводи любую, отдельно штату и аутсорсу'],
  ['v69','💵 гибкая оплата: штат и аутсорс — оклад/смена или только сдельно, ставки настраиваешь сам (от 5 р. за операцию, смена от 300 р.). Нет работы — нет зарплаты'],
  ['v68','🛂 АБК и проходная вне склада: турникет по лицу, раздевалки М/Ж, сейф, охрана с металлодетектором · 🚰 кулер · 📋 стенд ТБ · 🧯 огнетушители и пожарная проверка · 🏆 доска почёта · цветы убраны'],
  ['v67','🎚 5 уровней сложности: Аркада → Лёгкий → Нормальный → Сложный → Реализм · 🏆 достижения на каждом уровне свои (вкладки), награда выше на сложных · 🎓 достижение «Научился играть»'],
@@ -2158,7 +2159,7 @@ function makeReport(){
   const by={};workers.forEach(w=>{const k=ROLES[w.role].n+(w.out?' (аутсорс)':' (штат)');by[k]=(by[k]||0)+1;});
   const cnt={};objs.forEach(o=>{if(BUILD[o.type])cnt[BUILD[o.type].n]=(cnt[BUILD[o.type].n]||0)+1;});
   const mins=Math.round(playT/60);
-  return [`СкладМастер ${'v69'} — отчёт`,
+  return [`СкладМастер ${'v70'} — отчёт`,
    `Рейтинг ⭐${rating.toFixed(2)} · класс ${clsName()} · событие: ${evt?EVT[evt.k].n:'нет'}`,
    `Режим: ${isEasy()?'Лёгкий':'Реалистичный'} · играл ~${mins} мин · день ${day}`,
    `Деньги: ${Math.floor(money)} р. · уровень ${lvl} · отгружено всего ${totalShip} · рекорд за день ${bestShip}`,
@@ -2206,10 +2207,10 @@ function renderBoss(){
   h+=`<div style="font-size:12px;color:#aaa;margin-top:4px">Мало предложишь — откажется. Платишь меньше, чем хочет — злится, работает медленнее и может уволиться. «Без выходных» — устаёт.</div>
   <h3>💵 Система оплаты</h3><div style="background:#1d222c;border-radius:6px;padding:8px">
    <b>Штат:</b> <button onclick="payMode='fix';renderBoss()" style="padding:4px 8px;${payMode==='fix'?'background:#f2c230;color:#000':''}">Оклад + ${PIECE} р./операция</button> <button onclick="payMode='piece';renderBoss()" style="padding:4px 8px;${payMode==='piece'?'background:#f2c230;color:#000':''}">Только сдельно</button>
-   ${payMode==='piece'?`ставка: <button onclick="adjPay('pieceRate',-1)">−</button> <b>${pieceRate} р.</b> <button onclick="adjPay('pieceRate',1)">+</button> за операцию`:'<small>оклад каждому — в таблице ниже (от 300 р.)</small>'}<br>
+   ${payMode==='piece'?`ставка: <button onclick="adjPay('pieceRate',-1)">−</button> <input type="number" step="0.1" min="0.1" max="40" value="${pieceRate}" style="width:60px" onchange="pieceRate=Math.max(0.1,Math.min(40,+this.value||1));renderBoss()"> р. <button onclick="adjPay('pieceRate',1)">+</button> за операцию`:'<small>оклад каждому — в таблице ниже (от 300 р.)</small>'}<br>
    <b>Аутсорс:</b> <button onclick="outMode='shift';renderBoss()" style="padding:4px 8px;${outMode==='shift'?'background:#f2c230;color:#000':''}">За смену</button> <button onclick="outMode='piece';renderBoss()" style="padding:4px 8px;${outMode==='piece'?'background:#f2c230;color:#000':''}">Только сдельно</button>
-   ${outMode==='piece'?`ставка: <button onclick="adjPay('outRate',-1)">−</button> <b>${outRate} р.</b> <button onclick="adjPay('outRate',1)">+</button> за операцию`:`смена: <button onclick="adjPay('outShift',-50)">−</button> <b>${outShift} р.</b> <button onclick="adjPay('outShift',50)">+</button>`}<br>
-   <small style="color:#aaa">Сдельно — честно: склад ничего не обещает. Есть работа — есть деньги, нет работы — нет зарплаты. Кто напикал больше — получил больше. Люди соглашаются — деваться некуда 🙂</small></div>
+   ${outMode==='piece'?`ставка: <button onclick="adjPay('outRate',-1)">−</button> <input type="number" step="0.1" min="0.1" max="40" value="${outRate}" style="width:60px" onchange="outRate=Math.max(0.1,Math.min(40,+this.value||1));renderBoss()"> р. <button onclick="adjPay('outRate',1)">+</button> за операцию`:`смена: <button onclick="adjPay('outShift',-50)">−</button> <b>${outShift} р.</b> <button onclick="adjPay('outShift',50)">+</button>`}<br>
+   <small style="color:#aaa">Сдельно — честно: склад ничего не обещает. Есть работа — есть деньги, нет работы — нет зарплаты. Кто напикал больше — получил больше. Люди соглашаются — деваться некуда 🙂<br>Ставку можно ставить от 0,1 р. В игре 1 операция = целое задание (принять поддон, отнести коробку), это несколько сканов в жизни.</small></div>
   <h3>⚙ Режим работы</h3><div><label><input type="checkbox" style="width:auto" ${nightOn?'checked':''} onchange="nightOn=this.checked;renderBoss()"> 🌙 Работать и ночью — заказов и фур ×1,4, зарплаты +20%, ночью люди на 7% медленнее и чаще ошибаются</label></div>
   <div><label><input type="checkbox" style="width:auto" ${kpiOn?'checked':''} onchange="kpiOn=this.checked;renderBoss()"> ⏱ Нормы и KPI — выполнил норму: премия 200 р. и настроение ↑, меньше 60% — беседа (настроение ↓)</label></div>
   <div style="margin-top:4px"><button onclick="startInv()" ${invT>0?'disabled':''}>📋 Провести инвентаризацию — 2000 р.</button> <small style="color:#aaa">${invT>0?'идёт…':day<invUntil?`недостач меньше ещё ${invUntil-day} дн.`:'стеллажи закрываются на 40 сек: исправляет пересорт, недостач меньше 7 дней'}</small></div>
